@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"task-management-system/internal/pagination"
 
 	"github.com/joho/godotenv"
 )
@@ -14,7 +13,7 @@ type Config struct {
 	Port        string
 	DatabaseUrl string
 	JwtSecret   string
-	Pagination  pagination.PaginationConfig
+	Pagination  PaginationConfig
 }
 
 func getPort() string {

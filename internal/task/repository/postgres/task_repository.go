@@ -91,7 +91,7 @@ func (r *TaskRepository) Search(ctx context.Context, query *task.SearchTaskQuery
 		sql             bytes.Buffer
 		whereConditions = make([]string, 0)
 		whereParams     = make([]interface{}, 0)
-		paramIndex      = 1 // Start with 1 for parameter placeholders
+		paramIndex      = 1
 	)
 
 	sql.WriteString(`
@@ -144,9 +144,6 @@ func (r *TaskRepository) Search(ctx context.Context, query *task.SearchTaskQuery
 		offset := query.PerPage * (query.Page - 1)
 		sql.WriteString(fmt.Sprintf(" LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1))
 		whereParams = append(whereParams, query.PerPage, offset)
-	} else {
-		// If per_page is not provided, set a default value (e.g., 20)
-		sql.WriteString(" LIMIT 20")
 	}
 
 	// Execute the final query
