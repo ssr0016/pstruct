@@ -20,6 +20,17 @@ type UpdateTaskCommand struct {
 	Status      string `json:"status"`
 }
 
-type SearchTaskQuery struct{}
+type SearchTaskQuery struct {
+	Title       string `schema:"title"`
+	Description string `schema:"description"`
+	Status      string `schema:"status"`
+	PerPage     int    `schema:"per_page"`
+	Page        int    `schema:"page"`
+}
 
-type SearchTaskResult struct{}
+type SearchTaskResult struct {
+	TotalCount int     `json:"total_count"`
+	Tasks      []*Task `json:"results"`
+	Page       int     `json:"page"`
+	PerPage    int     `json:"per_page"`
+}

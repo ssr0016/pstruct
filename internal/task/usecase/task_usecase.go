@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"task-management-system/config"
 	"task-management-system/internal/task"
 	"task-management-system/internal/task/repository/postgres"
 
@@ -11,11 +12,13 @@ import (
 
 type TaskUseCase struct {
 	repo *postgres.TaskRepository
+	cfg  *config.Config
 }
 
-func NewTaskUsecase(db *sqlx.DB) task.Service {
+func NewTaskUsecase(db *sqlx.DB, cfg *config.Config) task.Service {
 	return &TaskUseCase{
-		repo: postgres.NewUserRepository(db),
+		repo: postgres.NewUserRepository(db), // Ensure this is correct
+		cfg:  cfg,
 	}
 }
 
@@ -67,5 +70,21 @@ func (tu *TaskUseCase) DeleteTask(ctx context.Context, id int) error {
 }
 
 func (tu *TaskUseCase) SearchTask(ctx context.Context, query *task.SearchTaskQuery) (*task.SearchTaskResult, error) {
-	panic("unimplemented")
+	if query.Page <= 0 {
+		query.Page = tu.cfg.Pagination.Page
+	}
+
+	if query.PerPage <= 0 {
+		query.PerPage = tu.cfg.Pagination.PageLimit
+	}
+
+	result, err := tu.repo.Search(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	result.PerPage = query.PerPage
+	result.Page = query.Page
+
+	return result, nil
 }

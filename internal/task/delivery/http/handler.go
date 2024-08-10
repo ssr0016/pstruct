@@ -62,10 +62,17 @@ func (h *TaskHandler) DeleteTask(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).SendString("Task deleted successfully")
 }
 
-// func (h *TaskHandler) GetAllTasks(c *fiber.Ctx) error {
-// 	tasks, err := h.s.GetAllTasks()
-// 	if err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-// 	}
-// 	return c.JSON(tasks)
-// }
+func (h *TaskHandler) SearchTask(c *fiber.Ctx) error {
+	var query task.SearchTaskQuery
+
+	if err := c.QueryParser(&query); err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+
+	result, err := h.s.SearchTask(c.Context(), &query)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	return c.JSON(result)
+}

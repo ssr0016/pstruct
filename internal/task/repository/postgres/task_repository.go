@@ -1,7 +1,10 @@
 package postgres
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"strings"
 	"task-management-system/internal/task"
 
 	"github.com/jmoiron/sqlx"
@@ -80,8 +83,93 @@ func (r *TaskRepository) Delete(ctx context.Context, id int) error {
 	return err
 }
 
-func (r *TaskRepository) GetAll() ([]task.Task, error) {
-	var tasks []task.Task
-	err := r.DB.Select(&tasks, "SELECT * FROM tasks")
-	return tasks, err
+func (r *TaskRepository) Search(ctx context.Context, query *task.SearchTaskQuery) (*task.SearchTaskResult, error) {
+	var (
+		result = &task.SearchTaskResult{
+			Tasks: make([]*task.Task, 0),
+		}
+		sql             bytes.Buffer
+		whereConditions = make([]string, 0)
+		whereParams     = make([]interface{}, 0)
+		paramIndex      = 1 // Start with 1 for parameter placeholders
+	)
+
+	sql.WriteString(`
+		SELECT
+			id,
+			title,
+			description,
+			status
+		FROM tasks
+	`)
+
+	// Handling the title search condition
+	if len(query.Title) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf("title ILIKE $%d", paramIndex))
+		whereParams = append(whereParams, "%"+query.Title+"%")
+		paramIndex++
+	}
+
+	// Handling the description search condition
+	if len(query.Description) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf("description ILIKE $%d", paramIndex))
+		whereParams = append(whereParams, "%"+query.Description+"%")
+		paramIndex++
+	}
+
+	// Handling the status search condition
+	if len(query.Status) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf("status ILIKE $%d", paramIndex))
+		whereParams = append(whereParams, "%"+query.Status+"%")
+		paramIndex++
+	}
+
+	// Add WHERE clause if there are any conditions
+	if len(whereConditions) > 0 {
+		sql.WriteString(" WHERE ")
+		sql.WriteString(strings.Join(whereConditions, " AND "))
+	}
+
+	// Add ORDER BY clause
+	sql.WriteString(" ORDER BY id")
+
+	// Getting the count of total results
+	count, err := r.getCount(ctx, sql, whereParams)
+	if err != nil {
+		return nil, err
+	}
+
+	// Handling pagination with LIMIT and OFFSET
+	if query.PerPage > 0 {
+		offset := query.PerPage * (query.Page - 1)
+		sql.WriteString(fmt.Sprintf(" LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1))
+		whereParams = append(whereParams, query.PerPage, offset)
+	} else {
+		// If per_page is not provided, set a default value (e.g., 20)
+		sql.WriteString(" LIMIT 20")
+	}
+
+	// Execute the final query
+	err = r.DB.SelectContext(ctx, &result.Tasks, sql.String(), whereParams...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Assigning the total count to the result
+	result.TotalCount = count
+
+	return result, nil
+}
+
+func (r *TaskRepository) getCount(ctx context.Context, sql bytes.Buffer, whereParams []interface{}) (int, error) {
+	var count int
+
+	rawSQL := "SELECT COUNT(*) FROM (" + sql.String() + ") as t1"
+
+	err := r.DB.GetContext(ctx, &count, rawSQL, whereParams...)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

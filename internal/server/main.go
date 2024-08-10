@@ -20,6 +20,7 @@ type Server struct {
 	port      string
 	jwtSecret string
 	db        *sqlx.DB
+	cfg       *config.Config
 }
 
 func NewServer(cfg *config.Config) *Server {
@@ -37,11 +38,12 @@ func NewServer(cfg *config.Config) *Server {
 		port:      port,
 		jwtSecret: cfg.JwtSecret,
 		db:        db,
+		cfg:       cfg,
 	}
 }
 
 func (s *Server) Start() error {
-	ts := taskUsecase.NewTaskUsecase(s.db)
+	ts := taskUsecase.NewTaskUsecase(s.db, s.cfg)
 	th := taskHttp.NewTaskHandler(ts)
 
 	uu := userUsecase.NewUserCase(s.db)

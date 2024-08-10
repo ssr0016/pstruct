@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"task-management-system/internal/pagination"
 
 	"github.com/joho/godotenv"
 )
@@ -13,6 +14,7 @@ type Config struct {
 	Port        string
 	DatabaseUrl string
 	JwtSecret   string
+	Pagination  pagination.PaginationConfig
 }
 
 func getPort() string {
@@ -47,9 +49,14 @@ func Load() *Config {
 		log.Fatalf("Error loading .env file: %v\n", err)
 	}
 
-	return &Config{
+	cfg := &Config{
 		Port:        getPort(),
 		DatabaseUrl: getDatabaseUrl(),
 		JwtSecret:   getJwtSecret(),
 	}
+
+	// Apply pagination configuration
+	cfg.LoadPaginationConfig()
+
+	return cfg
 }

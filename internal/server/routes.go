@@ -34,7 +34,7 @@ func (s *Server) SetupRoutes(
 	// Task routes
 	task := api.Group("/tasks")
 	task.Post("/", th.CreateTask)
-	// task.Get("/tasks", th.GetAllTasks)
+	task.Get("/", th.SearchTask)
 	task.Get("/:id", th.GetTaskByID)
 	task.Put("/:id", th.UpdateTask)
 	task.Delete("/:id", th.DeleteTask)
