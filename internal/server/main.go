@@ -42,9 +42,9 @@ func NewServer(cfg *config.Config) *Server {
 
 func (s *Server) Start() error {
 	ts := taskUsecase.NewTaskUsecase(s.db)
-	uu := userUsecase.NewUserCase(s.db)
-
 	th := taskHttp.NewTaskHandler(ts)
+
+	uu := userUsecase.NewUserCase(s.db)
 	uh := userHttp.NewUserHandler(uu)
 
 	s.SetupRoutes(th, uh)

@@ -2,37 +2,35 @@ package http
 
 import (
 	"task-management-system/internal/task"
-	"task-management-system/internal/task/usecase"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type TaskHandler struct {
-	s *usecase.TaskUseCase
+	s task.Service
 }
 
-func NewTaskHandler(s *usecase.TaskUseCase) *TaskHandler {
+func NewTaskHandler(s task.Service) *TaskHandler {
 	return &TaskHandler{
 		s: s,
 	}
 }
 
 func (h *TaskHandler) CreateTask(c *fiber.Ctx) error {
-	var t task.Task
-	if err := c.BodyParser(&t); err != nil {
+	var cmd task.CreateTaskCommand
+	if err := c.BodyParser(&cmd); err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
-
-	if err := h.s.CreateTask(&t); err != nil {
+	if err := h.s.CreateTask(c.Context(), &cmd); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(t)
+	return c.Status(fiber.StatusCreated).JSON(cmd)
 }
 
 func (h *TaskHandler) GetTaskByID(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
-	t, err := h.s.GetTaskByID(id)
+	t, err := h.s.GetTaskByID(c.Context(), id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).SendString(err.Error())
 	}
@@ -40,28 +38,34 @@ func (h *TaskHandler) GetTaskByID(c *fiber.Ctx) error {
 }
 
 func (h *TaskHandler) UpdateTask(c *fiber.Ctx) error {
-	var t task.Task
-	if err := c.BodyParser(&t); err != nil {
+	var cmd task.UpdateTaskCommand
+	if err := c.BodyParser(&cmd); err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
-	if err := h.s.UpdateTask(&t); err != nil {
+	if err := h.s.UpdateTask(c.Context(), &cmd); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	return c.JSON(t)
+
+	return c.JSON(cmd)
 }
 
 func (h *TaskHandler) DeleteTask(c *fiber.Ctx) error {
 	id, _ := c.ParamsInt("id")
-	if err := h.s.DeleteTask(id); err != nil {
-		return c.Status(fiber.StatusNotFound).SendString(err.Error())
-	}
-	return c.SendStatus(fiber.StatusNoContent)
-}
-
-func (h *TaskHandler) GetAllTasks(c *fiber.Ctx) error {
-	tasks, err := h.s.GetAllTasks()
-	if err != nil {
+	if err := h.s.DeleteTask(c.Context(), id); err != nil {
+		if err.Error() == "task not found" {
+			return c.Status(fiber.StatusNotFound).SendString("Task not found")
+		}
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	return c.JSON(tasks)
+
+	// Return success message with 200 OK
+	return c.Status(fiber.StatusOK).SendString("Task deleted successfully")
 }
+
+// func (h *TaskHandler) GetAllTasks(c *fiber.Ctx) error {
+// 	tasks, err := h.s.GetAllTasks()
+// 	if err != nil {
+// 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+// 	}
+// 	return c.JSON(tasks)
+// }

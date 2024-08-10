@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"task-management-system/internal/task"
 
 	"github.com/jmoiron/sqlx"
@@ -16,24 +17,66 @@ func NewUserRepository(db *sqlx.DB) *TaskRepository {
 	}
 }
 
-func (r *TaskRepository) Create(task *task.Task) error {
-	_, err := r.DB.NamedExec(`INSERT INTO tasks (title, description, status) VALUES (:title, :description, :status)`, task)
+func (r *TaskRepository) Create(ctx context.Context, cmd *task.CreateTaskCommand) error {
+	rawSQL := `
+		INSERT INTO tasks ( 
+		title,
+		description,
+		status
+		) VALUES (
+		 $1,
+		 $2,
+		$3
+		) RETURNING id
+	`
+	var id int
+
+	err := r.DB.QueryRowxContext(ctx, rawSQL, cmd.Title, cmd.Description, cmd.Status).Scan(&id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *TaskRepository) GetByID(ctx context.Context, id int) (*task.Task, error) {
+	var result task.Task
+
+	rawSQL := `
+		SELECT
+			id,
+			title,
+			description,
+			status
+		FROM tasks
+		WHERE 
+			id = $1	
+	`
+
+	err := r.DB.Get(&result, rawSQL, id)
+	return &result, err
+}
+
+func (r *TaskRepository) Update(ctx context.Context, cmd *task.UpdateTaskCommand) error {
+	rawSQL := `
+		UPDATE tasks
+		SET
+			title = $1,
+			description = $2,
+			status = $3
+		WHERE
+			id = $4
+	`
+	_, err := r.DB.ExecContext(ctx, rawSQL, cmd.Title, cmd.Description, cmd.Status, cmd.ID)
 	return err
 }
 
-func (r *TaskRepository) GetByID(id int) (*task.Task, error) {
-	var t task.Task
-	err := r.DB.Get(&t, "SELECT * FROM tasks WHERE id=$1", id)
-	return &t, err
-}
-
-func (r *TaskRepository) Update(task *task.Task) error {
-	_, err := r.DB.NamedExec(`UPDATE tasks SET title=:title, description=:description, status=:status WHERE id=:id`, task)
-	return err
-}
-
-func (r *TaskRepository) Delete(id int) error {
-	_, err := r.DB.Exec("DELETE FROM tasks WHERE id=$1", id)
+func (r *TaskRepository) Delete(ctx context.Context, id int) error {
+	rawSQL := `
+		DELETE FROM tasks
+		WHERE id = $1
+	`
+	_, err := r.DB.ExecContext(ctx, rawSQL, id)
 	return err
 }
 

@@ -6,3 +6,20 @@ type Task struct {
 	Description string `db:"description" json:"description"`
 	Status      string `db:"status" json:"status"`
 }
+
+type CreateTaskCommand struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+}
+
+type UpdateTaskCommand struct {
+	ID          int
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+}
+
+type SearchTaskQuery struct{}
+
+type SearchTaskResult struct{}
