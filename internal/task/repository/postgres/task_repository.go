@@ -10,6 +10,12 @@ type TaskRepository struct {
 	DB *sqlx.DB
 }
 
+func NewUserRepository(db *sqlx.DB) *TaskRepository {
+	return &TaskRepository{
+		DB: db,
+	}
+}
+
 func (r *TaskRepository) Create(task *task.Task) error {
 	_, err := r.DB.NamedExec(`INSERT INTO tasks (title, description, status) VALUES (:title, :description, :status)`, task)
 	return err

@@ -2,24 +2,18 @@ package db
 
 import (
 	"log"
-	"task-management-system/config"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
-var DB *sqlx.DB
-
-func Init() error {
-	databaseURL := config.GetDatabaseURL()
-	var err error
-	DB, err = sqlx.Open("postgres", databaseURL)
+func Connect(dbUrl string) *sqlx.DB {
+	db, err := sqlx.Connect("postgres", dbUrl)
 	if err != nil {
-		return err
+		log.Fatalf("Error connecting to database: %v\n", err)
 	}
-	if err = DB.Ping(); err != nil {
-		return err
-	}
-	log.Println("Database connection established")
-	return nil
+
+	log.Println("Connected to database")
+
+	return db
 }

@@ -3,28 +3,36 @@ package usecase
 import (
 	"task-management-system/internal/task"
 	"task-management-system/internal/task/repository/postgres"
+
+	"github.com/jmoiron/sqlx"
 )
 
-type TaskUsecase struct {
-	Repo *postgres.TaskRepository
+type TaskUseCase struct {
+	repo *postgres.TaskRepository
 }
 
-func (uc *TaskUsecase) CreateTask(t *task.Task) error {
-	return uc.Repo.Create(t)
+func NewTaskUsecase(db *sqlx.DB) *TaskUseCase {
+	return &TaskUseCase{
+		repo: postgres.NewUserRepository(db),
+	}
 }
 
-func (uc *TaskUsecase) GetTaskByID(id int) (*task.Task, error) {
-	return uc.Repo.GetByID(id)
+func (tu *TaskUseCase) CreateTask(t *task.Task) error {
+	return tu.repo.Create(t)
 }
 
-func (uc *TaskUsecase) UpdateTask(t *task.Task) error {
-	return uc.Repo.Update(t)
+func (tu *TaskUseCase) GetTaskByID(id int) (*task.Task, error) {
+	return tu.repo.GetByID(id)
 }
 
-func (uc *TaskUsecase) DeleteTask(id int) error {
-	return uc.Repo.Delete(id)
+func (tu *TaskUseCase) UpdateTask(t *task.Task) error {
+	return tu.repo.Update(t)
 }
 
-func (uc *TaskUsecase) GetAllTasks() ([]task.Task, error) {
-	return uc.Repo.GetAll()
+func (tu *TaskUseCase) DeleteTask(id int) error {
+	return tu.repo.Delete(id)
+}
+
+func (tu *TaskUseCase) GetAllTasks() ([]task.Task, error) {
+	return tu.repo.GetAll()
 }

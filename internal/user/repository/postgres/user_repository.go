@@ -10,6 +10,12 @@ type UserRepository struct {
 	DB *sqlx.DB
 }
 
+func NewUserRepository(db *sqlx.DB) *UserRepository {
+	return &UserRepository{
+		DB: db,
+	}
+}
+
 func (r *UserRepository) Create(user *user.User) error {
 	_, err := r.DB.NamedExec(`INSERT INTO users (username, password) VALUES (:username, :password)`, user)
 	return err
