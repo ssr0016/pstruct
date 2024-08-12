@@ -21,6 +21,11 @@ func (h *TaskHandler) CreateTask(c *fiber.Ctx) error {
 	if err := c.BodyParser(&cmd); err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
+
+	if err := cmd.Validate(); err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+
 	if err := h.s.CreateTask(c.Context(), &cmd); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
@@ -42,6 +47,11 @@ func (h *TaskHandler) UpdateTask(c *fiber.Ctx) error {
 	if err := c.BodyParser(&cmd); err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
+
+	if err := cmd.Validate(); err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+
 	if err := h.s.UpdateTask(c.Context(), &cmd); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}

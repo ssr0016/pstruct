@@ -23,7 +23,21 @@ func NewTaskUsecase(db *sqlx.DB, cfg *config.Config) task.Service {
 }
 
 func (tu *TaskUseCase) CreateTask(ctx context.Context, cmd *task.CreateTaskCommand) error {
-	return tu.repo.Create(ctx, cmd)
+	result, err := tu.repo.TaskTaken(ctx, 0, cmd.Title)
+	if err != nil {
+		return err
+	}
+
+	if len(result) > 0 {
+		return errors.New("task already exists")
+	}
+
+	err = tu.repo.Create(ctx, cmd)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (tu *TaskUseCase) GetTaskByID(ctx context.Context, id int) (*task.Task, error) {
@@ -36,19 +50,30 @@ func (tu *TaskUseCase) GetTaskByID(ctx context.Context, id int) (*task.Task, err
 }
 
 func (tu *TaskUseCase) UpdateTask(ctx context.Context, cmd *task.UpdateTaskCommand) error {
-	// Fetch the existing task to ensure it exists
-	existingTask, err := tu.repo.GetByID(ctx, cmd.ID)
+	result, err := tu.repo.TaskTaken(ctx, cmd.ID, cmd.Title)
 	if err != nil {
 		return err
 	}
 
-	// Check if task exists
-	if existingTask == nil {
+	if len(result) == 0 {
 		return errors.New("task not found")
 	}
 
-	// Update the task in the repository
-	return tu.repo.Update(ctx, cmd)
+	if len(result) > 1 || (len(result) == 1 && result[0].ID != cmd.ID) {
+		return errors.New("task already exists")
+	}
+
+	err = tu.repo.Update(ctx, &task.UpdateTaskCommand{
+		ID:          cmd.ID,
+		Title:       cmd.Title,
+		Description: cmd.Description,
+		Status:      cmd.Status,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (tu *TaskUseCase) DeleteTask(ctx context.Context, id int) error {

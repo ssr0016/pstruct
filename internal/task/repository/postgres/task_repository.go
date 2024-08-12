@@ -3,6 +3,8 @@ package postgres
 import (
 	"bytes"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"task-management-system/internal/task"
@@ -29,7 +31,7 @@ func (r *TaskRepository) Create(ctx context.Context, cmd *task.CreateTaskCommand
 		) VALUES (
 		 $1,
 		 $2,
-		$3
+		 $3
 		) RETURNING id
 	`
 	var id int
@@ -56,8 +58,16 @@ func (r *TaskRepository) GetByID(ctx context.Context, id int) (*task.Task, error
 			id = $1	
 	`
 
-	err := r.DB.Get(&result, rawSQL, id)
-	return &result, err
+	err := r.DB.GetContext(ctx, &result, rawSQL, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return &result, nil
 }
 
 func (r *TaskRepository) Update(ctx context.Context, cmd *task.UpdateTaskCommand) error {
@@ -169,4 +179,24 @@ func (r *TaskRepository) getCount(ctx context.Context, sql bytes.Buffer, wherePa
 	}
 
 	return count, nil
+}
+
+func (r *TaskRepository) TaskTaken(ctx context.Context, id int, title string) ([]*task.Task, error) {
+	var result []*task.Task
+
+	rawSQL := `
+		SELECT
+			*
+		FROM tasks
+		WHERE
+			id = $1 OR 
+			title = $2	
+	`
+
+	err := r.DB.SelectContext(ctx, &result, rawSQL, id, title)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
