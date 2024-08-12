@@ -1,4 +1,4 @@
-package error
+package errors
 
 import (
 	"log"
@@ -61,4 +61,31 @@ func ErrorNotFound(err error) error {
 		"Resource not found",
 		nil,
 	)
+}
+
+func ErrorInternalServerError(err error) error {
+	return NewApiError(
+		err,
+		fiber.StatusInternalServerError,
+		"Internal server error",
+		nil,
+	)
+}
+
+type ErrorStatus struct {
+	Code    string `json:"code"`
+	Message string `json:"message,omitempty"`
+}
+
+// Error implements the error interface for ErrorStatus
+func (e ErrorStatus) Error() string {
+	return e.Message
+}
+
+// New creates a new ErrorStatus
+func New(code string, message string) ErrorStatus {
+	return ErrorStatus{
+		Code:    code,
+		Message: message,
+	}
 }

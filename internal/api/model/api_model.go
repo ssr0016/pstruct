@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+)
+
+var ()
 
 type ApiError struct {
 	Code    int          `json:"code"`

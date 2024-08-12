@@ -29,7 +29,7 @@ func (tu *TaskUseCase) CreateTask(ctx context.Context, cmd *task.CreateTaskComma
 	}
 
 	if len(result) > 0 {
-		return errors.New("task already exists")
+		return task.ErrTaskAlreadyExists
 	}
 
 	err = tu.repo.Create(ctx, cmd)
@@ -46,6 +46,10 @@ func (tu *TaskUseCase) GetTaskByID(ctx context.Context, id int) (*task.Task, err
 		return nil, err
 	}
 
+	if result == nil {
+		return nil, task.ErrTaskNotFound
+	}
+
 	return result, nil
 }
 
@@ -56,11 +60,11 @@ func (tu *TaskUseCase) UpdateTask(ctx context.Context, cmd *task.UpdateTaskComma
 	}
 
 	if len(result) == 0 {
-		return errors.New("task not found")
+		return task.ErrTaskNotFound
 	}
 
 	if len(result) > 1 || (len(result) == 1 && result[0].ID != cmd.ID) {
-		return errors.New("task already exists")
+		return task.ErrTaskAlreadyExists
 	}
 
 	err = tu.repo.Update(ctx, &task.UpdateTaskCommand{

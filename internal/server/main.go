@@ -12,7 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/jmoiron/sqlx"
 
-	apiError "task-management-system/internal/api/error"
+	apiError "task-management-system/internal/api/errors"
 )
 
 type Server struct {

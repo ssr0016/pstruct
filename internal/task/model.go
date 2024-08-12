@@ -1,6 +1,15 @@
 package task
 
-import "errors"
+import (
+	"task-management-system/internal/api/errors"
+)
+
+var (
+	ErrInvalidTitle      = errors.New("task.invalid-title", "Invalid title")
+	ErrInvalidID         = errors.New("task.invalid-id", "Invalid id")
+	ErrTaskAlreadyExists = errors.New("task.already-exists", "Task already exists")
+	ErrTaskNotFound      = errors.New("task.not-found", "Task not found")
+)
 
 type Task struct {
 	ID          int    `db:"id" json:"id"`
@@ -39,19 +48,18 @@ type SearchTaskResult struct {
 
 func (cmd *CreateTaskCommand) Validate() error {
 	if len(cmd.Title) == 0 {
-		return errors.New("invalid title")
+		return ErrInvalidTitle
 	}
-
 	return nil
 }
 
 func (cmd *UpdateTaskCommand) Validate() error {
 	if cmd.ID <= 0 {
-		return errors.New("invalid id")
+		return ErrInvalidID
 	}
 
 	if len(cmd.Title) == 0 {
-		return errors.New("invalid title")
+		return ErrInvalidTitle
 	}
 
 	return nil
