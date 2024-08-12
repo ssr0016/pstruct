@@ -1,28 +1,36 @@
 package logger
 
 import (
-	"log"
-	"os"
+	"go.uber.org/zap"
 )
 
-var (
-	InfoLogger  *log.Logger
-	ErrorLogger *log.Logger
-)
+// Logger holds the application's logger instances.
+type Logger struct {
+	InfoLogger  *zap.Logger
+	ErrorLogger *zap.Logger
+}
 
-func Init() {
-	// Create or open log files
-	infoFile, err := os.OpenFile("info.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+// Init initializes and returns a new Logger instance with zap.
+func Init() (*Logger, error) {
+	// Set up development and production configurations for logging
+	infoLogger, err := zap.NewDevelopment()
 	if err != nil {
-		log.Fatalf("Failed to open info.log file: %v", err)
+		return nil, err
 	}
 
-	errorFile, err := os.OpenFile("error.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	errorLogger, err := zap.NewProduction()
 	if err != nil {
-		log.Fatalf("Failed to open error.log file: %v", err)
+		return nil, err
 	}
 
-	// Initialize loggers with file outputs
-	InfoLogger = log.New(infoFile, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	ErrorLogger = log.New(errorFile, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	return &Logger{
+		InfoLogger:  infoLogger,
+		ErrorLogger: errorLogger,
+	}, nil
+}
+
+// Sync flushes any buffered log entries.
+func (l *Logger) Sync() {
+	l.InfoLogger.Sync()
+	l.ErrorLogger.Sync()
 }

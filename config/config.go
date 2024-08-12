@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"task-management-system/internal/logger"
 
 	"github.com/joho/godotenv"
 )
@@ -13,6 +14,7 @@ type Config struct {
 	Port        string
 	DatabaseUrl string
 	JwtSecret   string
+	Logger      *logger.Logger
 	Pagination  PaginationConfig
 }
 
@@ -48,11 +50,20 @@ func Load() *Config {
 		log.Fatalf("Error loading .env file: %v\n", err)
 	}
 
+	development := os.Getenv("ENVIRONMENT") == "development"
+
+	loggers, err := logger.Init(development)
+	if err != nil {
+		log.Fatalf("Error initializing logger: %v\n", err)
+	}
+
 	cfg := &Config{
 		Port:        getPort(),
 		DatabaseUrl: getDatabaseUrl(),
 		JwtSecret:   getJwtSecret(),
+		Logger:      loggers,
 	}
+	cfg.Logger = loggers
 
 	// Apply pagination configuration
 	cfg.LoadPaginationConfig()

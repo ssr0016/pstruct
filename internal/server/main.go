@@ -3,6 +3,7 @@ package server
 import (
 	"task-management-system/config"
 	"task-management-system/internal/db"
+	"task-management-system/internal/logger"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	taskUsecase "task-management-system/internal/task/usecase"
 	userHttp "task-management-system/internal/user/delivery/http"
@@ -21,6 +22,7 @@ type Server struct {
 	jwtSecret string
 	db        *sqlx.DB
 	cfg       *config.Config
+	log       *logger.Logger
 }
 
 func NewServer(cfg *config.Config) *Server {
@@ -39,6 +41,7 @@ func NewServer(cfg *config.Config) *Server {
 		jwtSecret: cfg.JwtSecret,
 		db:        db,
 		cfg:       cfg,
+		log:       cfg.Logger,
 	}
 }
 
@@ -55,5 +58,6 @@ func (s *Server) Start() error {
 
 func (s *Server) Stop() error {
 	s.db.Close()
+	s.log.Sync()
 	return s.app.Shutdown()
 }

@@ -10,15 +10,18 @@ import (
 	"task-management-system/internal/task"
 
 	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 )
 
 type TaskRepository struct {
-	DB *sqlx.DB
+	DB     *sqlx.DB
+	logger *zap.Logger
 }
 
 func NewUserRepository(db *sqlx.DB) *TaskRepository {
 	return &TaskRepository{
-		DB: db,
+		DB:     db,
+		logger: zap.L().Named("task.repository"),
 	}
 }
 

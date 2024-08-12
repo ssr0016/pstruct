@@ -8,17 +8,22 @@ import (
 	"syscall"
 	"task-management-system/config"
 	"task-management-system/internal/server"
-	"task-management-system/pkg/logger"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func main() {
 	cfg := config.Load()
-	logger.Init()
+
+	cfg.Logger.Info("Logger initialized")
+
 	s := server.NewServer(cfg)
+
 	go func() {
 		if err := s.Start(); err != nil {
 			log.Fatalf("Server failed to start: %v\n", err)
+			cfg.Logger.Error("Server failed to start", zap.Error(err))
 		}
 	}()
 

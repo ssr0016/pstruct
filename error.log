@@ -1,0 +1,3 @@
+ERROR: 2024/08/12 17:33:01 error_handler.go:14: Error: Resource not found
+ERROR: 2024/08/12 17:33:05 error_handler.go:14: Error: Method Not Allowed
+ERROR: 2024/08/12 17:33:11 error_handler.go:14: Error: Resource not found

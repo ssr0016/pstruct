@@ -1,0 +1,4 @@
+INFO: 2024/08/12 17:33:01 logger.go:18: Method: DELETE, Path: /api/tasks/15, Status: 500, Duration: 3.7241ms
+INFO: 2024/08/12 17:33:05 logger.go:18: Method: DELETE, Path: /api/tasks/, Status: 500, Duration: 49.072µs
+INFO: 2024/08/12 17:33:11 logger.go:18: Method: DELETE, Path: /api/tasks/15, Status: 500, Duration: 1.882717ms
+INFO: 2024/08/12 17:33:19 logger.go:18: Method: GET, Path: /api/tasks/, Status: 200, Duration: 4.450923ms
