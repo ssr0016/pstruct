@@ -58,7 +58,6 @@ func (h *TaskHandler) DeleteTask(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	// Return success message with 200 OK
 	return c.Status(fiber.StatusOK).SendString("Task deleted successfully")
 }
 

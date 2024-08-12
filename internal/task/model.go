@@ -21,11 +21,11 @@ type UpdateTaskCommand struct {
 }
 
 type SearchTaskQuery struct {
-	Title       string `schema:"title"`
-	Description string `schema:"description"`
-	Status      string `schema:"status"`
-	PerPage     int    `schema:"per_page"`
-	Page        int    `schema:"page"`
+	Title       string `query:"title"`
+	Description string `query:"description"`
+	Status      string `query:"status"`
+	PerPage     int    `query:"per_page"`
+	Page        int    `query:"page"`
 }
 
 type SearchTaskResult struct {
