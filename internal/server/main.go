@@ -2,16 +2,16 @@ package server
 
 import (
 	"task-management-system/config"
-	"task-management-system/internal/db"
 	"task-management-system/internal/logger"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	taskUsecase "task-management-system/internal/task/usecase"
 	userHttp "task-management-system/internal/user/delivery/http"
 	userUsecase "task-management-system/internal/user/usecase"
 
+	"task-management-system/internal/db"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/jmoiron/sqlx"
 
 	apiError "task-management-system/internal/api/errors"
 )
@@ -20,7 +20,7 @@ type Server struct {
 	app       *fiber.App
 	port      string
 	jwtSecret string
-	db        *sqlx.DB
+	db        db.DB
 	cfg       *config.Config
 	log       *logger.Logger
 }
@@ -33,13 +33,15 @@ func NewServer(cfg *config.Config) *Server {
 	app.Use(cors.New())
 
 	port := ":" + cfg.Port
-	db := db.Connect(cfg.DatabaseUrl)
+
+	// Initialize SqlxDB with the provided database configuration
+	sqlxDB := &db.SqlxDB{DB: cfg.DB}
 
 	return &Server{
 		app:       app,
 		port:      port,
 		jwtSecret: cfg.JwtSecret,
-		db:        db,
+		db:        sqlxDB,
 		cfg:       cfg,
 		log:       cfg.Logger,
 	}
@@ -57,7 +59,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Stop() error {
-	s.db.Close()
+	// s.db.Close()
 	s.log.Sync()
 	return s.app.Shutdown()
 }

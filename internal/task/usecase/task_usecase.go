@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"task-management-system/config"
+	"task-management-system/internal/db"
 	"task-management-system/internal/task"
 	"task-management-system/internal/task/repository/postgres"
 
-	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +17,7 @@ type TaskUseCase struct {
 	log  *zap.Logger
 }
 
-func NewTaskUsecase(db *sqlx.DB, cfg *config.Config) task.Service {
+func NewTaskUsecase(db db.DB, cfg *config.Config) task.Service {
 	return &TaskUseCase{
 		repo: postgres.NewUserRepository(db), // Ensure this is correct
 		cfg:  cfg,

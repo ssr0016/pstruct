@@ -5,9 +5,12 @@ import (
 	"log"
 	"os"
 	"strconv"
+
 	"task-management-system/internal/logger"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type Config struct {
@@ -16,6 +19,7 @@ type Config struct {
 	JwtSecret   string
 	Logger      *logger.Logger
 	Pagination  PaginationConfig
+	DB          *sqlx.DB
 }
 
 func getPort() string {
@@ -50,6 +54,7 @@ func Load() *Config {
 		log.Fatalf("Error loading .env file: %v\n", err)
 	}
 
+	// Initialize logger
 	development := os.Getenv("ENVIRONMENT") == "development"
 
 	loggers, err := logger.Init(development)
@@ -57,11 +62,18 @@ func Load() *Config {
 		log.Fatalf("Error initializing logger: %v\n", err)
 	}
 
+	// Initialize the database
+	dbConn, err := sqlx.Connect("postgres", getDatabaseUrl())
+	if err != nil {
+		log.Fatalf("Error connecting to database: %v\n", err)
+	}
+
 	cfg := &Config{
 		Port:        getPort(),
 		DatabaseUrl: getDatabaseUrl(),
 		JwtSecret:   getJwtSecret(),
 		Logger:      loggers,
+		DB:          dbConn,
 	}
 	cfg.Logger = loggers
 

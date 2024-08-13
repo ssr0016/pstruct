@@ -7,44 +7,47 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"task-management-system/internal/db"
 	"task-management-system/internal/task"
 
-	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
 type TaskRepository struct {
-	DB     *sqlx.DB
+	db     db.DB
 	logger *zap.Logger
 }
 
-func NewUserRepository(db *sqlx.DB) *TaskRepository {
+func NewUserRepository(db db.DB) *TaskRepository {
 	return &TaskRepository{
-		DB:     db,
+		db:     db,
 		logger: zap.L().Named("task.repository"),
 	}
 }
 
 func (r *TaskRepository) Create(ctx context.Context, cmd *task.CreateTaskCommand) error {
-	rawSQL := `
-		INSERT INTO tasks ( 
-		title,
-		description,
-		status
-		) VALUES (
-		 $1,
-		 $2,
-		 $3
-		) RETURNING id
-	`
-	var id int
+	return r.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		rawSQL := `
+			INSERT INTO tasks ( 
+			title,
+			description,
+			status
+			) VALUES (
+			 $1,
+			 $2,
+			 $3
+			) RETURNING id
+		`
+		var id int
 
-	err := r.DB.QueryRowxContext(ctx, rawSQL, cmd.Title, cmd.Description, cmd.Status).Scan(&id)
-	if err != nil {
-		return err
-	}
+		err := tx.QueryRow(ctx, rawSQL, cmd.Title, cmd.Description, cmd.Status).Scan(&id)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func (r *TaskRepository) GetByID(ctx context.Context, id int) (*task.Task, error) {
@@ -61,7 +64,7 @@ func (r *TaskRepository) GetByID(ctx context.Context, id int) (*task.Task, error
 			id = $1	
 	`
 
-	err := r.DB.GetContext(ctx, &result, rawSQL, id)
+	err := r.db.Get(ctx, &result, rawSQL, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -74,26 +77,30 @@ func (r *TaskRepository) GetByID(ctx context.Context, id int) (*task.Task, error
 }
 
 func (r *TaskRepository) Update(ctx context.Context, cmd *task.UpdateTaskCommand) error {
-	rawSQL := `
-		UPDATE tasks
-		SET
-			title = $1,
-			description = $2,
-			status = $3
-		WHERE
-			id = $4
-	`
-	_, err := r.DB.ExecContext(ctx, rawSQL, cmd.Title, cmd.Description, cmd.Status, cmd.ID)
-	return err
+	return r.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		rawSQL := `
+			UPDATE tasks
+			SET
+				title = $1,
+				description = $2,
+				status = $3
+			WHERE
+				id = $4
+		`
+		_, err := tx.Exec(ctx, rawSQL, cmd.Title, cmd.Description, cmd.Status, cmd.ID)
+		return err
+	})
 }
 
 func (r *TaskRepository) Delete(ctx context.Context, id int) error {
-	rawSQL := `
-		DELETE FROM tasks
-		WHERE id = $1
-	`
-	_, err := r.DB.ExecContext(ctx, rawSQL, id)
-	return err
+	return r.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		rawSQL := `
+			DELETE FROM tasks
+			WHERE id = $1
+		`
+		_, err := tx.Exec(ctx, rawSQL, id)
+		return err
+	})
 }
 
 func (r *TaskRepository) Search(ctx context.Context, query *task.SearchTaskQuery) (*task.SearchTaskResult, error) {
@@ -160,7 +167,7 @@ func (r *TaskRepository) Search(ctx context.Context, query *task.SearchTaskQuery
 	}
 
 	// Execute the final query
-	err = r.DB.SelectContext(ctx, &result.Tasks, sql.String(), whereParams...)
+	err = r.db.Select(ctx, &result.Tasks, sql.String(), whereParams...)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +183,7 @@ func (r *TaskRepository) getCount(ctx context.Context, sql bytes.Buffer, wherePa
 
 	rawSQL := "SELECT COUNT(*) FROM (" + sql.String() + ") as t1"
 
-	err := r.DB.GetContext(ctx, &count, rawSQL, whereParams...)
+	err := r.db.Get(ctx, &count, rawSQL, whereParams...)
 	if err != nil {
 		return 0, err
 	}
@@ -196,7 +203,7 @@ func (r *TaskRepository) TaskTaken(ctx context.Context, id int, title string) ([
 			title = $2	
 	`
 
-	err := r.DB.SelectContext(ctx, &result, rawSQL, id, title)
+	err := r.db.Select(ctx, &result, rawSQL, id, title)
 	if err != nil {
 		return nil, err
 	}
