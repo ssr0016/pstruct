@@ -41,10 +41,11 @@ func (s *Server) SetupRoutes(
 	task.Delete("/:id", th.DeleteTask)
 
 	// User routes
-	// User routes
 	user := api.Group("/users")
 	user.Post("/", uh.CreateUser)
 	user.Post("/login", uh.LoginUser)
 	user.Get("/:id", uh.GetUserByID)
+	user.Put("/:id", uh.UpdateUser)
+	user.Delete("/:id", uh.DeleteUser)
 
 }

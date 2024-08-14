@@ -29,18 +29,24 @@ func (u *UserRepository) Create(ctx context.Context, cmd *user.CreateUserRequest
 				first_name,
 				last_name,
 				email,
-				password_hash
+				password_hash, 
+			 	address,
+				phone_number,
+				date_of_birth
 			) VALUES (
 				$1,
 				$2,
 				$3,
-				$4
+				$4,
+				$5,
+				$6,
+				$7
 			) RETURNING id
 		`
 
 		var id int
 
-		err := tx.QueryRow(ctx, rawSQL, cmd.FirstName, cmd.LastName, cmd.Email, cmd.Password).Scan(&id)
+		err := tx.QueryRow(ctx, rawSQL, cmd.FirstName, cmd.LastName, cmd.Email, cmd.Password, cmd.Address, cmd.PhoneNumber, cmd.DateOfBirth).Scan(&id)
 		if err != nil {
 			return err
 		}
@@ -58,7 +64,10 @@ func (u *UserRepository) GetUserByEmail(ctx context.Context, email string) (*use
 			first_name,
 			last_name,
 			email,
-			password_hash
+			password_hash,
+			address,
+			phone_number,
+			date_of_birth
 		FROM
 			users
 		WHERE
@@ -85,7 +94,11 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id int) (*user.User, e
 			id,
 			first_name,
 			last_name,
-			email
+			email,
+			password_hash,
+			address,
+			phone_number,
+			date_of_birth
 		FROM
 			users
 		WHERE
@@ -102,6 +115,41 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id int) (*user.User, e
 	}
 
 	return &user, nil
+}
+
+func (u *UserRepository) Update(ctx context.Context, cmd *user.UpdateUserRequest) error {
+	return u.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		rawSQL := `
+		UPDATE users
+		SET
+			first_name = $1,
+			last_name = $2,
+			email = $3,
+			address = $4,
+			phone_number = $5,
+			date_of_birth = $6
+		WHERE
+			id = $7
+	`
+
+		_, err := u.db.Exec(ctx, rawSQL, cmd.FirstName, cmd.LastName, cmd.Email, cmd.Address, cmd.PhoneNumber, cmd.DateOfBirth, cmd.ID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (u *UserRepository) Delete(ctx context.Context, id int) error {
+	return u.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		rawSQL := `
+			DELETE FROM users
+			WHERE id = $1
+		`
+		_, err := tx.Exec(ctx, rawSQL, id)
+		return err
+	})
 }
 
 func (u *UserRepository) TaskTaken(ctx context.Context, id int, email string) ([]*user.User, error) {

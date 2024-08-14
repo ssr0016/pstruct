@@ -74,3 +74,36 @@ func (h *UserHandler) GetUserByID(ctx *fiber.Ctx) error {
 		"user": result,
 	})
 }
+
+func (h *UserHandler) UpdateUser(ctx *fiber.Ctx) error {
+	var cmd user.UpdateUserRequest
+
+	if err := ctx.BodyParser(&cmd); err != nil {
+		return apiError.ErrorBadRequest(err)
+	}
+
+	if err := cmd.Validate(); err != nil {
+		return apiError.ErrorBadRequest(err)
+	}
+
+	err := h.s.UpdateUser(ctx.Context(), &cmd)
+	if err != nil {
+		return apiError.ErrorInternalServerError(err)
+	}
+
+	return response.Ok(ctx, fiber.Map{
+		"updated user": cmd,
+	})
+}
+
+func (h *UserHandler) DeleteUser(ctx *fiber.Ctx) error {
+	id, _ := ctx.ParamsInt("id")
+
+	if err := h.s.DeleteUser(ctx.Context(), id); err != nil {
+		return apiError.ErrorInternalServerError(err)
+	}
+
+	return response.Ok(ctx, fiber.Map{
+		"message": "User deleted successfully",
+	})
+}

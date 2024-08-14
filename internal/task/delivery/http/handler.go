@@ -70,16 +70,18 @@ func (h *TaskHandler) UpdateTask(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *TaskHandler) DeleteTask(c *fiber.Ctx) error {
-	id, _ := c.ParamsInt("id")
-	if err := h.s.DeleteTask(c.Context(), id); err != nil {
+func (h *TaskHandler) DeleteTask(ctx *fiber.Ctx) error {
+	id, _ := ctx.ParamsInt("id")
+	if err := h.s.DeleteTask(ctx.Context(), id); err != nil {
 		if err.Error() == "task not found" {
 			return apiError.ErrorNotFound(err)
 		}
 		return apiError.ErrorInternalServerError(err)
 	}
 
-	return c.Status(fiber.StatusOK).SendString("Task deleted successfully")
+	return response.Ok(ctx, fiber.Map{
+		"message": "Task deleted successfully",
+	})
 }
 
 func (h *TaskHandler) SearchTask(ctx *fiber.Ctx) error {

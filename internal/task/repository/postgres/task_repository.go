@@ -88,7 +88,11 @@ func (r *TaskRepository) Update(ctx context.Context, cmd *task.UpdateTaskCommand
 				id = $4
 		`
 		_, err := tx.Exec(ctx, rawSQL, cmd.Title, cmd.Description, cmd.Status, cmd.ID)
-		return err
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 }
 

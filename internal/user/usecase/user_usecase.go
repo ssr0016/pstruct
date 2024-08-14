@@ -83,3 +83,54 @@ func (uu *UserUsecase) GetUserByID(ctx context.Context, id int) (*user.User, err
 
 	return result, nil
 }
+
+func (uu *UserUsecase) UpdateUser(ctx context.Context, cmd *user.UpdateUserRequest) error {
+	return uu.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		// Check if the user with the given ID exists
+		existingUser, err := uu.repo.GetUserByID(ctx, cmd.ID)
+		if err != nil {
+			return err
+		}
+
+		if existingUser == nil {
+			return user.ErrUserNotFound
+		}
+
+		// Check if the email already exists for another user
+		emailExists, err := uu.repo.GetUserByEmail(ctx, cmd.Email)
+		if err != nil {
+			return err
+		}
+
+		if emailExists != nil && emailExists.ID != cmd.ID {
+			return user.ErrUserAlreadyExists
+		}
+
+		err = uu.repo.Update(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (uu *UserUsecase) DeleteUser(ctx context.Context, id int) error {
+	return uu.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		result, err := uu.repo.GetUserByID(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		if result == nil {
+			return user.ErrUserNotFound
+		}
+
+		err = uu.repo.Delete(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}

@@ -1,8 +1,6 @@
 package util
 
 import (
-	"regexp"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,14 +20,6 @@ func CheckPasswordHash(hash, password string) error {
 	}
 
 	return nil
-}
-
-// IsValidEmail checks if the provided email address is valid using a regular expression.
-func IsValidEmail(email string) bool {
-	// Simple regex to check the email format
-	const emailRegex = `^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`
-	re := regexp.MustCompile(emailRegex)
-	return re.MatchString(email)
 }
 
 // IsValidPassword checks if the password meets the minimum security criteria.
