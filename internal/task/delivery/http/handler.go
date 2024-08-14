@@ -20,6 +20,7 @@ func NewTaskHandler(s task.Service) *TaskHandler {
 
 func (h *TaskHandler) CreateTask(ctx *fiber.Ctx) error {
 	var cmd task.CreateTaskCommand
+
 	if err := ctx.BodyParser(&cmd); err != nil {
 		return apiError.ErrorBadRequest(err)
 	}

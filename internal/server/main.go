@@ -51,7 +51,7 @@ func (s *Server) Start() error {
 	ts := taskUsecase.NewTaskUsecase(s.db, s.cfg)
 	th := taskHttp.NewTaskHandler(ts)
 
-	uu := userUsecase.NewUserCase(s.db)
+	uu := userUsecase.NewUserCase(s.db, s.cfg)
 	uh := userHttp.NewUserHandler(uu)
 
 	s.SetupRoutes(th, uh)

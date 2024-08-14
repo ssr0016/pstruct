@@ -1,62 +1,73 @@
 package http
 
 import (
-	"task-management-system/internal/user/usecase"
+	apiError "task-management-system/internal/api/errors"
+	"task-management-system/internal/api/response"
+	"task-management-system/internal/user"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type UserHandler struct {
-	s *usecase.UserUsecase
+	s user.Service
 }
 
-func NewUserHandler(s *usecase.UserUsecase) *UserHandler {
+func NewUserHandler(s user.Service) *UserHandler {
 	return &UserHandler{
 		s: s,
 	}
 }
 
-// func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
-// 	var u user.User
-// 	if err := c.BodyParser(&u); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
-// 	}
-// 	if err := h.s.CreateUser(&u); err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-// 	}
-// 	return c.Status(fiber.StatusCreated).JSON(u)
-// }
+func (h *UserHandler) CreateUser(ctx *fiber.Ctx) error {
+	var cmd user.CreateUserRequest
 
-// func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
-// 	id, _ := c.ParamsInt("id")
-// 	u, err := h.s.GetUserByID(id)
-// 	if err != nil {
-// 		return c.Status(fiber.StatusNotFound).SendString(err.Error())
-// 	}
-// 	return c.JSON(u)
-// }
+	if err := ctx.BodyParser(&cmd); err != nil {
+		return apiError.ErrorBadRequest(err)
+	}
 
-// func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
-// 	var u user.User
-// 	if err := c.BodyParser(&u); err != nil {
-// 		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
-// 	}
-// 	if err := h.s.UpdateUser(&u); err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-// 	}
-// 	return c.JSON(u)
-// }
+	if err := cmd.Validate(); err != nil {
+		return apiError.ErrorBadRequest(err)
+	}
 
-// func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
-// 	id, _ := c.ParamsInt("id")
-// 	if err := h.s.DeleteUser(id); err != nil {
-// 		return c.Status(fiber.StatusNotFound).SendString(err.Error())
-// 	}
-// 	return c.SendStatus(fiber.StatusNoContent)
-// }
+	if err := h.s.CreateUser(ctx.Context(), &cmd); err != nil {
+		return apiError.ErrorInternalServerError(err)
+	}
 
-// func (h *UserHandler) GetAllUsers(c *fiber.Ctx) error {
-// 	users, err := h.s.GetAllUsers()
-// 	if err != nil {
-// 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-// 	}
-// 	return c.JSON(users)
-// }
+	return response.Created(ctx, fiber.Map{
+		"user": cmd,
+	})
+}
+
+func (h *UserHandler) LoginUser(ctx *fiber.Ctx) error {
+	var cmd user.LoginUserRequest
+
+	if err := ctx.BodyParser(&cmd); err != nil {
+		return apiError.ErrorBadRequest(err)
+	}
+
+	if err := cmd.Validate(); err != nil {
+		return apiError.ErrorBadRequest(err)
+	}
+
+	result, err := h.s.GetUserByEmail(ctx.Context(), cmd.Email)
+	if err != nil {
+		return apiError.ErrorInternalServerError(err)
+	}
+
+	return response.Ok(ctx, fiber.Map{
+		"user": result,
+	})
+}
+
+func (h *UserHandler) GetUserByID(ctx *fiber.Ctx) error {
+	id, _ := ctx.ParamsInt("id")
+
+	result, err := h.s.GetUserByID(ctx.Context(), id)
+	if err != nil {
+		return apiError.ErrorInternalServerError(err)
+	}
+
+	return response.Ok(ctx, fiber.Map{
+		"user": result,
+	})
+}

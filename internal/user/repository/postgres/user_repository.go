@@ -1,42 +1,126 @@
 package postgres
 
 import (
+	"context"
+	"database/sql"
+	"errors"
 	"task-management-system/internal/db"
+	"task-management-system/internal/user"
+
+	"go.uber.org/zap"
 )
 
 type UserRepository struct {
-	DB db.DB
+	db     db.DB
+	logger *zap.Logger
 }
 
 func NewUserRepository(db db.DB) *UserRepository {
 	return &UserRepository{
-		DB: db,
+		db:     db,
+		logger: zap.L().Named("user.repository"),
 	}
 }
 
-// func (r *UserRepository) Create(user *user.User) error {
-// 	_, err := r.DB.NamedExec(`INSERT INTO users (username, password) VALUES (:username, :password)`, user)
-// 	return err
-// }
+func (u *UserRepository) Create(ctx context.Context, cmd *user.CreateUserRequest) error {
+	return u.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		rawSQL := `
+			INSERT INTO users (
+				first_name,
+				last_name,
+				email,
+				password_hash
+			) VALUES (
+				$1,
+				$2,
+				$3,
+				$4
+			) RETURNING id
+		`
 
-// func (r *UserRepository) GetByID(id int) (*user.User, error) {
-// 	var u user.User
-// 	err := r.DB.Get(&u, "SELECT * FROM users WHERE id=$1", id)
-// 	return &u, err
-// }
+		var id int
+		err := tx.QueryRow(ctx, rawSQL, cmd.FirstName, cmd.LastName, cmd.Email, cmd.Password).Scan(&id)
+		if err != nil {
+			return err
+		}
 
-// func (r *UserRepository) Update(user *user.User) error {
-// 	_, err := r.DB.NamedExec(`UPDATE users SET username=:username, password=:password WHERE id=:id`, user)
-// 	return err
-// }
+		return nil
+	})
+}
 
-// func (r *UserRepository) Delete(id int) error {
-// 	_, err := r.DB.Exec("DELETE FROM users WHERE id=$1", id)
-// 	return err
-// }
+func (u *UserRepository) GetUserByEmail(ctx context.Context, email string) (*user.User, error) {
+	var user user.User
 
-// func (r *UserRepository) GetAll() ([]user.User, error) {
-// 	var users []user.User
-// 	err := r.DB.Select(&users, "SELECT * FROM users")
-// 	return users, err
-// }
+	rawSQL := `
+		SELECT
+			id,
+			first_name,
+			last_name,
+			email
+		FROM
+			users
+		WHERE
+			email = $1
+	`
+
+	err := u.db.Get(ctx, &user, rawSQL, email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
+func (u *UserRepository) GetUserByID(ctx context.Context, id int) (*user.User, error) {
+	var user user.User
+
+	rawSQL := `
+		SELECT
+			id,
+			first_name,
+			last_name,
+			email
+		FROM
+			users
+		WHERE
+			id = $1
+	`
+
+	err := u.db.Get(ctx, &user, rawSQL, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
+func (u *UserRepository) TaskTaken(ctx context.Context, id int, email string) ([]*user.User, error) {
+	var result []*user.User
+
+	rawSQL := `
+		SELECT
+			id,
+			first_name,
+			last_name,
+			email
+		FROM
+			users
+		WHERE
+			email = $1
+	`
+
+	err := u.db.Select(ctx, &result, rawSQL, email)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}

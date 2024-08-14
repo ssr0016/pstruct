@@ -1,37 +1,75 @@
 package usecase
 
 import (
+	"context"
+	"task-management-system/config"
 	"task-management-system/internal/db"
+	"task-management-system/internal/user"
 	"task-management-system/internal/user/repository/postgres"
+	util "task-management-system/pkg/util/password"
+
+	"go.uber.org/zap"
 )
 
 type UserUsecase struct {
 	repo *postgres.UserRepository
+	cfg  *config.Config
+	log  *zap.Logger
+	db   db.DB
 }
 
-func NewUserCase(db db.DB) *UserUsecase {
+func NewUserCase(db db.DB, cfg *config.Config) user.Service {
 	return &UserUsecase{
 		repo: postgres.NewUserRepository(db),
+		db:   db,
+		cfg:  cfg,
+		log:  zap.L().Named("user.usecase"),
 	}
 
 }
 
-// func (s *UserUsecase) CreateUser(u *user.User) error {
-// 	return s.repo.Create(u)
-// }
+func (uu *UserUsecase) CreateUser(ctx context.Context, cmd *user.CreateUserRequest) error {
+	return uu.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		result, err := uu.repo.TaskTaken(ctx, 0, cmd.Email)
+		if err != nil {
+			return err
+		}
 
-// func (s *UserUsecase) GetUserByID(id int) (*user.User, error) {
-// 	return s.repo.GetByID(id)
-// }
+		if len(result) > 0 {
+			return user.ErrUserAlreadyExists
+		}
 
-// func (s *UserUsecase) UpdateUser(u *user.User) error {
-// 	return s.repo.Update(u)
-// }
+		// Hash the password
+		passwordHash, err := util.HashPassword(cmd.Password)
+		if err != nil {
+			return err
+		}
 
-// func (s *UserUsecase) DeleteUser(id int) error {
-// 	return s.repo.Delete(id)
-// }
+		cmd.Password = passwordHash
 
-// func (s *UserUsecase) GetAllUsers() ([]user.User, error) {
-// 	return s.repo.GetAll()
-// }
+		err = uu.repo.Create(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (uu *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*user.User, error) {
+	result, err := uu.repo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (uu *UserUsecase) GetUserByID(ctx context.Context, id int) (*user.User, error) {
+	result, err := uu.repo.GetUserByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
