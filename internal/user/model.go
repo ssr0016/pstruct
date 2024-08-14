@@ -2,6 +2,7 @@ package user
 
 import (
 	"task-management-system/internal/api/errors"
+	util "task-management-system/pkg/util/password"
 )
 
 var (
@@ -24,11 +25,10 @@ type User struct {
 
 // CreateUserRequest represents the request payload for creating a new user.
 type CreateUserRequest struct {
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	Email        string `json:"email"`
-	Password     string `json:"password"`
-	PasswordHash string `json:"-"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
 }
 
 type LoginUserRequest struct {
@@ -73,11 +73,15 @@ func (cmd *LoginUserRequest) Validate() error {
 		return ErrInvalidEmail
 	}
 
+	if !util.IsValidEmail(cmd.Email) {
+		return ErrInvalidEmail
+	}
+
 	if len(cmd.Password) == 0 {
 		return ErrInvalidPassword
 	}
 
-	if len(cmd.Password) <= 6 {
+	if !util.IsValidPassword(cmd.Password) {
 		return ErrInvalidPassword
 	}
 

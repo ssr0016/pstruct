@@ -39,6 +39,7 @@ func (u *UserRepository) Create(ctx context.Context, cmd *user.CreateUserRequest
 		`
 
 		var id int
+
 		err := tx.QueryRow(ctx, rawSQL, cmd.FirstName, cmd.LastName, cmd.Email, cmd.Password).Scan(&id)
 		if err != nil {
 			return err
@@ -56,7 +57,8 @@ func (u *UserRepository) GetUserByEmail(ctx context.Context, email string) (*use
 			id,
 			first_name,
 			last_name,
-			email
+			email,
+			password_hash
 		FROM
 			users
 		WHERE

@@ -49,8 +49,11 @@ func (h *UserHandler) LoginUser(ctx *fiber.Ctx) error {
 		return apiError.ErrorBadRequest(err)
 	}
 
-	result, err := h.s.GetUserByEmail(ctx.Context(), cmd.Email)
+	result, err := h.s.GetUserByEmail(ctx.Context(), &cmd)
 	if err != nil {
+		if err == user.ErrUserNotFound || err == user.ErrInvalidPassword {
+			return apiError.ErrorUnauthorized(err, "Invalid email or password")
+		}
 		return apiError.ErrorInternalServerError(err)
 	}
 

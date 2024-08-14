@@ -56,10 +56,20 @@ func (uu *UserUsecase) CreateUser(ctx context.Context, cmd *user.CreateUserReque
 	})
 }
 
-func (uu *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*user.User, error) {
-	result, err := uu.repo.GetUserByEmail(ctx, email)
+func (uu *UserUsecase) GetUserByEmail(ctx context.Context, cmd *user.LoginUserRequest) (*user.User, error) {
+	result, err := uu.repo.GetUserByEmail(ctx, cmd.Email)
 	if err != nil {
 		return nil, err
+	}
+
+	if result == nil {
+		return nil, user.ErrUserNotFound
+	}
+
+	// Check if the provided password matches the hashed password
+	err = util.CheckPasswordHash(result.PasswordHash, cmd.Password)
+	if err != nil {
+		return nil, user.ErrInvalidPassword
 	}
 
 	return result, nil
