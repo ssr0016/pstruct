@@ -37,19 +37,11 @@ type LoginUserRequest struct {
 }
 
 func (cmd *CreateUserRequest) Validate() error {
-	if len(cmd.FirstName) == 0 {
-		return ErrInvalidEmail
-	}
-
-	if len(cmd.FirstName) <= 2 {
+	if len(cmd.FirstName) < 2 {
 		return ErrInvalidFirstName
 	}
 
-	if len(cmd.LastName) <= 2 {
-		return ErrInvalidLastName
-	}
-
-	if len(cmd.LastName) == 0 {
+	if len(cmd.LastName) < 2 {
 		return ErrInvalidLastName
 	}
 
@@ -57,12 +49,12 @@ func (cmd *CreateUserRequest) Validate() error {
 		return ErrInvalidEmail
 	}
 
-	if len(cmd.Password) == 0 {
+	if len(cmd.Password) < 6 {
 		return ErrInvalidPassword
 	}
 
-	if len(cmd.Password) <= 6 {
-		return ErrInvalidPassword
+	if !util.IsValidEmail(cmd.Email) {
+		return ErrInvalidEmail
 	}
 
 	return nil
@@ -73,12 +65,12 @@ func (cmd *LoginUserRequest) Validate() error {
 		return ErrInvalidEmail
 	}
 
-	if !util.IsValidEmail(cmd.Email) {
-		return ErrInvalidEmail
-	}
-
 	if len(cmd.Password) == 0 {
 		return ErrInvalidPassword
+	}
+
+	if !util.IsValidEmail(cmd.Email) {
+		return ErrInvalidEmail
 	}
 
 	if !util.IsValidPassword(cmd.Password) {
