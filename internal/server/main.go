@@ -3,8 +3,10 @@ package server
 import (
 	"task-management-system/config"
 	departmentHttp "task-management-system/internal/department/delivery/http"
-	departmentUsecase "task-management-system/internal/department/usecase"
+	departmentUseCase "task-management-system/internal/department/usecase"
 	"task-management-system/internal/logger"
+	roleHttp "task-management-system/internal/rabc/role/delivery/http"
+	roleUseCase "task-management-system/internal/rabc/role/usecase"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	taskUsecase "task-management-system/internal/task/usecase"
 	userHttp "task-management-system/internal/user/delivery/http"
@@ -50,16 +52,19 @@ func NewServer(cfg *config.Config) *Server {
 }
 
 func (s *Server) Start() error {
-	tu := taskUsecase.NewTaskUsecase(s.db, s.cfg)
+	tu := taskUsecase.NewTaskUseCase(s.db, s.cfg)
 	th := taskHttp.NewTaskHandler(tu)
 
 	uu := userUsecase.NewUserCase(s.db, s.cfg)
 	uh := userHttp.NewUserHandler(uu)
 
-	du := departmentUsecase.NewDepartmentUsecase(s.db, s.cfg)
+	du := departmentUseCase.NewDepartmentUsecase(s.db, s.cfg)
 	dh := departmentHttp.NewDepartmentHandler(du)
 
-	s.SetupRoutes(th, uh, dh)
+	ru := roleUseCase.NewRoleUseCase(s.db, s.cfg)
+	rh := roleHttp.NewRoleHandler(ru)
+
+	s.SetupRoutes(th, uh, dh, rh)
 	return s.app.Listen(s.port)
 }
 

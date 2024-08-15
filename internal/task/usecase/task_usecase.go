@@ -17,7 +17,7 @@ type TaskUseCase struct {
 	log  *zap.Logger
 }
 
-func NewTaskUsecase(db db.DB, cfg *config.Config) task.Service {
+func NewTaskUseCase(db db.DB, cfg *config.Config) task.Service {
 	return &TaskUseCase{
 		repo: postgres.NewUserRepository(db), // Ensure this is correct
 		db:   db,

@@ -7,6 +7,7 @@ import (
 	"task-management-system/internal/db"
 	departmentHttp "task-management-system/internal/department/delivery/http"
 	"task-management-system/internal/middleware"
+	roleHttp "task-management-system/internal/rabc/role/delivery/http"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	userHttp "task-management-system/internal/user/delivery/http"
 
@@ -30,6 +31,7 @@ func (s *Server) SetupRoutes(
 	th *taskHttp.TaskHandler,
 	uh *userHttp.UserHandler,
 	dh *departmentHttp.DepartmentHandler,
+	rh *roleHttp.RoleHandler,
 ) {
 
 	api := s.app.Group("/api")
@@ -58,8 +60,18 @@ func (s *Server) SetupRoutes(
 	department.Put("/:id", dh.UpdateDepartment)
 	department.Delete("/:id", dh.DeleteDepartment)
 
+	// Role routes
+	role := api.Group("/roles")
+	role.Use(middleware.JWTProtected(s.jwtSecret))
+	role.Post("/", rh.CreateRole)
+	role.Get("/", rh.SearchRole)
+	role.Get("/:id", rh.GetRoleByID)
+	role.Put("/:id", rh.UpdateRole)
+	role.Delete("/:id", rh.DeleteRole)
+
 	// Task routes
 	task := api.Group("/tasks")
+	task.Use(middleware.JWTProtected(s.jwtSecret))
 	task.Post("/", th.CreateTask)
 	task.Get("/", th.SearchTask)
 	task.Get("/:id", th.GetTaskByID)
