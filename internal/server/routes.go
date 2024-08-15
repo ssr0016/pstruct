@@ -42,10 +42,14 @@ func (s *Server) SetupRoutes(
 
 	// User routes
 	user := api.Group("/users")
-	user.Post("/", uh.CreateUser)
-	user.Post("/login", uh.LoginUser)
-	user.Get("/:id", uh.GetUserByID)
-	user.Put("/:id", uh.UpdateUser)
-	user.Delete("/:id", uh.DeleteUser)
 
+	user.Post("/register", uh.CreateUser)
+	user.Post("/login", uh.LoginUser)
+
+	admin := api.Group("/admin")
+	admin.Post("/users", uh.CreateUser)
+	admin.Get("/users", uh.SearchUser)
+	admin.Get("/users/:id", uh.GetUserByID)
+	admin.Put("/users/:id", uh.UpdateUser)
+	admin.Delete("/users/:id", uh.DeleteUser)
 }

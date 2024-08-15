@@ -1,9 +1,12 @@
 package postgres
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 	"task-management-system/internal/db"
 	"task-management-system/internal/user"
 
@@ -150,6 +153,106 @@ func (u *UserRepository) Delete(ctx context.Context, id int) error {
 		_, err := tx.Exec(ctx, rawSQL, id)
 		return err
 	})
+}
+
+func (u *UserRepository) SearchUser(ctx context.Context, query *user.SearchUserQuery) (*user.SearchUserResult, error) {
+	var (
+		result = &user.SearchUserResult{
+			Users: make([]*user.User, 0),
+		}
+		sql             bytes.Buffer
+		whereConditions = make([]string, 0)
+		whereParams     = make([]interface{}, 0)
+		paramIndex      = 1
+	)
+
+	sql.WriteString(`
+		SELECT
+			id,
+			first_name,
+			last_name,
+			email,
+			address,
+			phone_number,
+			date_of_birth
+		FROM
+			users
+	`)
+
+	if len(query.FirstName) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf("first_name ILIKE $%d", paramIndex))
+		whereParams = append(whereParams, "%"+query.FirstName+"%")
+		paramIndex++
+	}
+
+	if len(query.LastName) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf("last_name ILIKE $%d", paramIndex))
+		whereParams = append(whereParams, "%"+query.LastName+"%")
+		paramIndex++
+	}
+
+	if len(query.Email) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf("email ILIKE $%d", paramIndex))
+		whereParams = append(whereParams, "%"+query.Email+"%")
+		paramIndex++
+	}
+
+	if len(query.Address) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf("address ILIKE $%d", paramIndex))
+		whereParams = append(whereParams, "%"+query.Address+"%")
+		paramIndex++
+	}
+
+	if len(query.PhoneNumber) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf("phone_number ILIKE $%d", paramIndex))
+		whereParams = append(whereParams, "%"+query.PhoneNumber+"%")
+		paramIndex++
+	}
+
+	if len(query.DateOfBirth) > 0 {
+		whereConditions = append(whereConditions, fmt.Sprintf("date_of_birth = $%d", paramIndex))
+		whereParams = append(whereParams, query.DateOfBirth)
+		paramIndex++
+	}
+
+	if len(whereConditions) > 0 {
+		sql.WriteString(" WHERE ")
+		sql.WriteString(strings.Join(whereConditions, " AND "))
+	}
+
+	// Getting the count of total results
+	count, err := u.getCount(ctx, sql, whereParams)
+	if err != nil {
+		return nil, err
+	}
+
+	if query.PerPage > 0 {
+		offset := query.PerPage * (query.Page - 1)
+		sql.WriteString(fmt.Sprintf(" LIMIT $%d OFFSET $%d", paramIndex, paramIndex+1))
+		whereParams = append(whereParams, query.PerPage, offset)
+	}
+
+	err = u.db.Select(ctx, &result.Users, sql.String(), whereParams...)
+	if err != nil {
+		return nil, err
+	}
+
+	result.TotalCount = count
+
+	return result, nil
+}
+
+func (r *UserRepository) getCount(ctx context.Context, sql bytes.Buffer, whereParams []interface{}) (int, error) {
+	var count int
+
+	rawSQL := "SELECT COUNT(*) FROM (" + sql.String() + ") as t1"
+
+	err := r.db.Get(ctx, &count, rawSQL, whereParams...)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 func (u *UserRepository) TaskTaken(ctx context.Context, id int, email string) ([]*user.User, error) {

@@ -115,6 +115,25 @@ func (uu *UserUsecase) UpdateUser(ctx context.Context, cmd *user.UpdateUserReque
 	})
 }
 
+func (uu *UserUsecase) SearchUser(ctx context.Context, query *user.SearchUserQuery) (*user.SearchUserResult, error) {
+	if query.Page <= 0 {
+		query.Page = uu.cfg.Pagination.Page
+	}
+
+	if query.PerPage <= 0 {
+		query.PerPage = uu.cfg.Pagination.PageLimit
+	}
+
+	result, err := uu.repo.SearchUser(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	result.PerPage = query.PerPage
+	result.Page = query.Page
+
+	return result, nil
+}
 func (uu *UserUsecase) DeleteUser(ctx context.Context, id int) error {
 	return uu.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
 		result, err := uu.repo.GetUserByID(ctx, id)

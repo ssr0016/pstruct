@@ -107,3 +107,20 @@ func (h *UserHandler) DeleteUser(ctx *fiber.Ctx) error {
 		"message": "User deleted successfully",
 	})
 }
+
+func (h *UserHandler) SearchUser(ctx *fiber.Ctx) error {
+	var query user.SearchUserQuery
+
+	if err := ctx.QueryParser(&query); err != nil {
+		return apiError.ErrorBadRequest(err)
+	}
+
+	result, err := h.s.SearchUser(ctx.Context(), &query)
+	if err != nil {
+		return apiError.ErrorInternalServerError(err)
+	}
+
+	return response.Ok(ctx, fiber.Map{
+		"users": result,
+	})
+}

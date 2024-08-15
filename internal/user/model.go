@@ -53,6 +53,24 @@ type UpdateUserRequest struct {
 	DateOfBirth string `json:"date_of_birth"`
 }
 
+type SearchUserQuery struct {
+	FirstName   string `query:"first_name"`
+	LastName    string `query:"last_name"`
+	Email       string `query:"email"`
+	Address     string `query:"address"`
+	PhoneNumber string `query:"phone_number"`
+	DateOfBirth string `query:"date_of_birth"`
+	PerPage     int    `query:"per_page"`
+	Page        int    `query:"page"`
+}
+
+type SearchUserResult struct {
+	TotalCount int     `json:"total_count"`
+	Users      []*User `json:"results"`
+	Page       int     `json:"page"`
+	PerPage    int     `json:"per_page"`
+}
+
 type LoginUserRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
