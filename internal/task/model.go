@@ -35,8 +35,8 @@ type SearchTaskQuery struct {
 	Title       string `query:"title"`
 	Description string `query:"description"`
 	Status      string `query:"status"`
-	PerPage     int    `query:"per_page"`
 	Page        int    `query:"page"`
+	PerPage     int    `query:"per_page"`
 }
 
 type SearchTaskResult struct {

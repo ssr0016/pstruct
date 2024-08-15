@@ -5,6 +5,7 @@ import (
 	"errors"
 	"task-management-system/internal/api/response"
 	"task-management-system/internal/db"
+	departmentHttp "task-management-system/internal/department/delivery/http"
 	"task-management-system/internal/middleware"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	userHttp "task-management-system/internal/user/delivery/http"
@@ -28,6 +29,7 @@ func healthCheck(db db.DB) fiber.Handler {
 func (s *Server) SetupRoutes(
 	th *taskHttp.TaskHandler,
 	uh *userHttp.UserHandler,
+	dh *departmentHttp.DepartmentHandler,
 ) {
 
 	api := s.app.Group("/api")
@@ -46,6 +48,15 @@ func (s *Server) SetupRoutes(
 	admin.Get("/users/:id", uh.GetUserByID)
 	admin.Put("/users/:id", uh.UpdateUser)
 	admin.Delete("/users/:id", uh.DeleteUser)
+
+	// Department routes
+	department := api.Group("/departments")
+	department.Use(middleware.JWTProtected(s.jwtSecret))
+	department.Post("/", dh.CreateDepartment)
+	department.Get("/", dh.SearchDepartment)
+	department.Get("/:id", dh.GetDepartmentByID)
+	department.Put("/:id", dh.UpdateDepartment)
+	department.Delete("/:id", dh.DeleteDepartment)
 
 	// Task routes
 	task := api.Group("/tasks")

@@ -2,6 +2,8 @@ package server
 
 import (
 	"task-management-system/config"
+	departmentHttp "task-management-system/internal/department/delivery/http"
+	departmentUsecase "task-management-system/internal/department/usecase"
 	"task-management-system/internal/logger"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	taskUsecase "task-management-system/internal/task/usecase"
@@ -48,13 +50,16 @@ func NewServer(cfg *config.Config) *Server {
 }
 
 func (s *Server) Start() error {
-	ts := taskUsecase.NewTaskUsecase(s.db, s.cfg)
-	th := taskHttp.NewTaskHandler(ts)
+	tu := taskUsecase.NewTaskUsecase(s.db, s.cfg)
+	th := taskHttp.NewTaskHandler(tu)
 
 	uu := userUsecase.NewUserCase(s.db, s.cfg)
 	uh := userHttp.NewUserHandler(uu)
 
-	s.SetupRoutes(th, uh)
+	du := departmentUsecase.NewDepartmentUsecase(s.db, s.cfg)
+	dh := departmentHttp.NewDepartmentHandler(du)
+
+	s.SetupRoutes(th, uh, dh)
 	return s.app.Listen(s.port)
 }
 

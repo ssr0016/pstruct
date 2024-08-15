@@ -13,8 +13,8 @@ import (
 type TaskUseCase struct {
 	repo *postgres.TaskRepository
 	cfg  *config.Config
-	log  *zap.Logger
 	db   db.DB
+	log  *zap.Logger
 }
 
 func NewTaskUsecase(db db.DB, cfg *config.Config) task.Service {

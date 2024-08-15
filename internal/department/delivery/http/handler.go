@@ -3,23 +3,23 @@ package http
 import (
 	apiError "task-management-system/internal/api/errors"
 	"task-management-system/internal/api/response"
-	"task-management-system/internal/task"
+	"task-management-system/internal/department"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type TaskHandler struct {
-	s task.Service
+type DepartmentHandler struct {
+	s department.Service
 }
 
-func NewTaskHandler(s task.Service) *TaskHandler {
-	return &TaskHandler{
+func NewDepartmentHandler(s department.Service) *DepartmentHandler {
+	return &DepartmentHandler{
 		s: s,
 	}
 }
 
-func (h *TaskHandler) CreateTask(ctx *fiber.Ctx) error {
-	var cmd task.CreateTaskCommand
+func (h *DepartmentHandler) CreateDepartment(ctx *fiber.Ctx) error {
+	var cmd department.CreateDepartmentCommand
 
 	if err := ctx.BodyParser(&cmd); err != nil {
 		return apiError.ErrorBadRequest(err)
@@ -29,30 +29,30 @@ func (h *TaskHandler) CreateTask(ctx *fiber.Ctx) error {
 		return apiError.ErrorBadRequest(err)
 	}
 
-	if err := h.s.CreateTask(ctx.Context(), &cmd); err != nil {
+	if err := h.s.CreateDepartment(ctx.Context(), &cmd); err != nil {
 		return apiError.ErrorInternalServerError(err)
 	}
 
 	return response.Created(ctx, fiber.Map{
-		"task": cmd,
+		"department": cmd,
 	})
 }
 
-func (h *TaskHandler) GetTaskByID(ctx *fiber.Ctx) error {
+func (h *DepartmentHandler) GetDepartmentByID(ctx *fiber.Ctx) error {
 	id, _ := ctx.ParamsInt("id")
 
-	result, err := h.s.GetTaskByID(ctx.Context(), id)
+	result, err := h.s.GetDepartmentByID(ctx.Context(), id)
 	if err != nil {
 		return apiError.ErrorBadRequest(err)
 	}
 
 	return response.Ok(ctx, fiber.Map{
-		"task": result,
+		"department": result,
 	})
 }
 
-func (h *TaskHandler) UpdateTask(ctx *fiber.Ctx) error {
-	var cmd task.UpdateTaskCommand
+func (h *DepartmentHandler) UpdateDepartment(ctx *fiber.Ctx) error {
+	var cmd department.UpdateDepartmentCommand
 
 	if err := ctx.BodyParser(&cmd); err != nil {
 		return apiError.ErrorBadRequest(err)
@@ -62,19 +62,19 @@ func (h *TaskHandler) UpdateTask(ctx *fiber.Ctx) error {
 		return apiError.ErrorBadRequest(err)
 	}
 
-	if err := h.s.UpdateTask(ctx.Context(), &cmd); err != nil {
-		return apiError.ErrorInternalServerError(err)
+	if err := h.s.UpdateDepartment(ctx.Context(), &cmd); err != nil {
+		return apiError.ErrorBadRequest(err)
 	}
 
 	return response.Ok(ctx, fiber.Map{
-		"task": cmd,
+		"department": cmd,
 	})
 }
 
-func (h *TaskHandler) DeleteTask(ctx *fiber.Ctx) error {
+func (h *DepartmentHandler) DeleteDepartment(ctx *fiber.Ctx) error {
 	id, _ := ctx.ParamsInt("id")
 
-	if err := h.s.DeleteTask(ctx.Context(), id); err != nil {
+	if err := h.s.DeleteDepartment(ctx.Context(), id); err != nil {
 		if err.Error() == "task not found" {
 			return apiError.ErrorNotFound(err)
 		}
@@ -82,23 +82,23 @@ func (h *TaskHandler) DeleteTask(ctx *fiber.Ctx) error {
 	}
 
 	return response.Ok(ctx, fiber.Map{
-		"message": "Task deleted successfully",
+		"message": "Department deleted successfully",
 	})
 }
 
-func (h *TaskHandler) SearchTask(ctx *fiber.Ctx) error {
-	var query task.SearchTaskQuery
+func (h *DepartmentHandler) SearchDepartment(ctx *fiber.Ctx) error {
+	var query department.SearchDepartmentQuery
 
 	if err := ctx.QueryParser(&query); err != nil {
 		return apiError.ErrorBadRequest(err)
 	}
 
-	result, err := h.s.SearchTask(ctx.Context(), &query)
+	result, err := h.s.SearchDepartment(ctx.Context(), &query)
 	if err != nil {
 		return apiError.ErrorInternalServerError(err)
 	}
 
 	return response.Ok(ctx, fiber.Map{
-		"tasks": result,
+		"departments": result,
 	})
 }
