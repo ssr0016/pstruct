@@ -4,8 +4,8 @@ import (
 	"context"
 	"task-management-system/config"
 	"task-management-system/internal/db"
-	rabc "task-management-system/internal/rabc/role"
-	"task-management-system/internal/rabc/role/repository/postgres"
+	rabc "task-management-system/internal/rbac/role"
+	"task-management-system/internal/rbac/role/repository/postgres"
 
 	"go.uber.org/zap"
 )

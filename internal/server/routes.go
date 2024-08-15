@@ -7,7 +7,7 @@ import (
 	"task-management-system/internal/db"
 	departmentHttp "task-management-system/internal/department/delivery/http"
 	"task-management-system/internal/middleware"
-	roleHttp "task-management-system/internal/rabc/role/delivery/http"
+	roleHttp "task-management-system/internal/rbac/role/delivery/http"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	userHttp "task-management-system/internal/user/delivery/http"
 

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"task-management-system/internal/db"
-	rabc "task-management-system/internal/rabc/role"
+	rabc "task-management-system/internal/rbac/role"
 
 	"go.uber.org/zap"
 )

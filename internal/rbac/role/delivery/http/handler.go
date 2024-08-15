@@ -3,7 +3,7 @@ package http
 import (
 	apiError "task-management-system/internal/api/errors"
 	"task-management-system/internal/api/response"
-	rabc "task-management-system/internal/rabc/role"
+	rabc "task-management-system/internal/rbac/role"
 
 	"github.com/gofiber/fiber/v2"
 )
