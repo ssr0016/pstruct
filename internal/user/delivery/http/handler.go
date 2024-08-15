@@ -58,7 +58,7 @@ func (h *UserHandler) LoginUser(ctx *fiber.Ctx) error {
 	}
 
 	return response.Ok(ctx, fiber.Map{
-		"user": result,
+		"access_token": result,
 	})
 }
 

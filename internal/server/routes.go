@@ -5,6 +5,7 @@ import (
 	"errors"
 	"task-management-system/internal/api/response"
 	"task-management-system/internal/db"
+	"task-management-system/internal/middleware"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	userHttp "task-management-system/internal/user/delivery/http"
 
@@ -32,6 +33,20 @@ func (s *Server) SetupRoutes(
 	api := s.app.Group("/api")
 	api.Get("/", healthCheck(s.db))
 
+	// User routes
+	user := api.Group("/users")
+	user.Post("/register", uh.CreateUser)
+	user.Post("/login", uh.LoginUser)
+
+	// Admin routes
+	admin := api.Group("/admin")
+	admin.Use(middleware.JWTProtected(s.jwtSecret))
+	admin.Post("/users", uh.CreateUser)
+	admin.Get("/users", uh.SearchUser)
+	admin.Get("/users/:id", uh.GetUserByID)
+	admin.Put("/users/:id", uh.UpdateUser)
+	admin.Delete("/users/:id", uh.DeleteUser)
+
 	// Task routes
 	task := api.Group("/tasks")
 	task.Post("/", th.CreateTask)
@@ -40,16 +55,4 @@ func (s *Server) SetupRoutes(
 	task.Put("/:id", th.UpdateTask)
 	task.Delete("/:id", th.DeleteTask)
 
-	// User routes
-	user := api.Group("/users")
-
-	user.Post("/register", uh.CreateUser)
-	user.Post("/login", uh.LoginUser)
-
-	admin := api.Group("/admin")
-	admin.Post("/users", uh.CreateUser)
-	admin.Get("/users", uh.SearchUser)
-	admin.Get("/users/:id", uh.GetUserByID)
-	admin.Put("/users/:id", uh.UpdateUser)
-	admin.Delete("/users/:id", uh.DeleteUser)
 }

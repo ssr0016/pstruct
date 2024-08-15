@@ -46,7 +46,11 @@ func getDatabaseUrl() string {
 }
 
 func getJwtSecret() string {
-	return os.Getenv("JWT_SECRET")
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatalf("JWT_SECRET is not set in the environment")
+	}
+	return jwtSecret
 }
 
 func Load() *Config {

@@ -6,6 +6,7 @@ import (
 	"task-management-system/internal/db"
 	"task-management-system/internal/user"
 	"task-management-system/internal/user/repository/postgres"
+	"task-management-system/pkg/util/jwt"
 	util "task-management-system/pkg/util/password"
 
 	"go.uber.org/zap"
@@ -56,23 +57,29 @@ func (uu *UserUsecase) CreateUser(ctx context.Context, cmd *user.CreateUserReque
 	})
 }
 
-func (uu *UserUsecase) GetUserByEmail(ctx context.Context, cmd *user.LoginUserRequest) (*user.User, error) {
+func (uu *UserUsecase) GetUserByEmail(ctx context.Context, cmd *user.LoginUserRequest) (string, error) {
 	result, err := uu.repo.GetUserByEmail(ctx, cmd.Email)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if result == nil {
-		return nil, user.ErrUserNotFound
+		return "", user.ErrUserNotFound
 	}
 
 	// Check if the provided password matches the hashed password
 	err = util.CheckPasswordHash(result.PasswordHash, cmd.Password)
 	if err != nil {
-		return nil, user.ErrInvalidPassword
+		return "", user.ErrInvalidPassword
 	}
 
-	return result, nil
+	// Generate JWT token
+	token, err := jwt.GenerateToken(result.Email)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (uu *UserUsecase) GetUserByID(ctx context.Context, id int) (*user.User, error) {
