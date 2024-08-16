@@ -85,9 +85,7 @@ func (s *Server) SetupRoutes(
 	// UserRole routes
 	userrole := api.Group("/userroles")
 	userrole.Use(middleware.JWTProtected(s.jwtSecret))
-	userrole.Post("/", urh.AssignRoleToUser)
-	userrole.Delete("/:id", urh.RemoveRoleFromUser)
-	userrole.Get("/", urh.SearchUserRoles)
+	userrole.Post("/", urh.Assign)
 
 	// Task routes
 	task := api.Group("/tasks")

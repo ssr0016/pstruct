@@ -26,56 +26,21 @@ func NewUserRoleUseCase(db db.DB, cfg *config.Config) userroles.Service {
 	}
 }
 
-// AssignRoleToUser implements userroles.Service.
-func (ur *UserRoleUseCase) AssignRoleToUser(ctx context.Context, cmd *userroles.CreateUserRoleCommand) error {
-	return ur.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
-		result, err := ur.repo.UserRoleTaken(ctx, cmd.UserID, cmd.RoleID)
-		if err != nil {
-			return err
-		}
-
-		if len(result) > 0 {
-			return userroles.ErrUserRoleAlreadyExists
-		}
-
-		err = ur.repo.AssignRoleToUser(ctx, cmd)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-}
-
-// RemoveRoleFromUser implements userroles.Service.
-func (ur *UserRoleUseCase) RemoveRoleFromUser(ctx context.Context, cmd *userroles.CreateRemoveUserRoleCommand) error {
-	return ur.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
-		err := ur.repo.RemoveRoleFromUser(ctx, cmd)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-}
-
-// SearchUserRole implements userroles.Service.
-func (ur *UserRoleUseCase) SearchUserRole(ctx context.Context, query *userroles.SearchUserRoleQuery) (*userroles.SearchUserRoleResult, error) {
-	if query.Page <= 0 {
-		query.Page = ur.cfg.Pagination.Page
+func (uru *UserRoleUseCase) Assign(ctx context.Context, userID, roleID int) error {
+	if userID <= 0 {
+		return userroles.ErrInvalidUserID
 	}
 
-	if query.PerPage <= 0 {
-		query.PerPage = ur.cfg.Pagination.PageLimit
+	if roleID <= 0 {
+		return userroles.ErrInvalidRoleID
 	}
 
-	result, err := ur.repo.SearchUserRole(ctx, query)
+	err := uru.repo.Assign(ctx, userID, roleID)
 	if err != nil {
-		return nil, err
+		uru.log.Error("error assigning user role", zap.Error(err))
+		return err
 	}
 
-	result.PerPage = query.PerPage
-	result.Page = query.Page
+	return nil
 
-	return result, nil
 }

@@ -18,59 +18,25 @@ func NewUserRoleHandler(s userroles.Service) *UserRolesHandler {
 	}
 }
 
-func (h *UserRolesHandler) AssignRoleToUser(ctx *fiber.Ctx) error {
-	var cmd userroles.CreateUserRoleCommand
+func (h *UserRolesHandler) Assign(ctx *fiber.Ctx) error {
+	var ids userroles.UserRole
 
-	if err := ctx.BodyParser(&cmd); err != nil {
+	if err := ctx.BodyParser(&ids); err != nil {
 		return apiError.ErrorBadRequest(err)
 	}
 
-	if err := cmd.Validate(); err != nil {
+	if err := ids.Validate(); err != nil {
 		return apiError.ErrorBadRequest(err)
 	}
 
-	if err := h.s.AssignRoleToUser(ctx.Context(), &cmd); err != nil {
-		return apiError.ErrorInternalServerError(err)
-	}
-
-	return response.Ok(ctx, fiber.Map{
-		"user": cmd,
-	})
-}
-
-func (h *UserRolesHandler) RemoveRoleFromUser(ctx *fiber.Ctx) error {
-	var cmd userroles.CreateRemoveUserRoleCommand
-
-	if err := ctx.BodyParser(&cmd); err != nil {
-		return apiError.ErrorBadRequest(err)
-	}
-
-	if err := cmd.Validate(); err != nil {
-		return apiError.ErrorBadRequest(err)
-	}
-
-	if err := h.s.RemoveRoleFromUser(ctx.Context(), &cmd); err != nil {
-		return apiError.ErrorInternalServerError(err)
-	}
-
-	return response.Ok(ctx, fiber.Map{
-		"user": cmd,
-	})
-}
-
-func (h *UserRolesHandler) SearchUserRoles(ctx *fiber.Ctx) error {
-	var query userroles.SearchUserRoleQuery
-
-	if err := ctx.QueryParser(&query); err != nil {
-		return apiError.ErrorBadRequest(err)
-	}
-
-	result, err := h.s.SearchUserRole(ctx.Context(), &query)
+	err := h.s.Assign(ctx.Context(), ids.UserID, ids.RoleID)
 	if err != nil {
-		return apiError.ErrorBadRequest(err)
+		return apiError.ErrorInternalServerError(err)
 	}
 
 	return response.Ok(ctx, fiber.Map{
-		"users": result,
+		"message": "user role assigned successfully",
+		"user_id": ids.UserID,
+		"role_id": ids.RoleID,
 	})
 }
