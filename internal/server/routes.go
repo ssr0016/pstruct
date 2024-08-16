@@ -9,6 +9,7 @@ import (
 	"task-management-system/internal/middleware"
 	permissionHttp "task-management-system/internal/rbac/permission/delivery/http"
 	roleHttp "task-management-system/internal/rbac/role/delivery/http"
+	userroleHttp "task-management-system/internal/rbac/userroles/delivery/http"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	userHttp "task-management-system/internal/user/delivery/http"
 
@@ -34,6 +35,7 @@ func (s *Server) SetupRoutes(
 	dh *departmentHttp.DepartmentHandler,
 	rh *roleHttp.RoleHandler,
 	ph *permissionHttp.PermissionHandler,
+	urh *userroleHttp.UserRolesHandler,
 ) {
 
 	api := s.app.Group("/api")
@@ -79,6 +81,13 @@ func (s *Server) SetupRoutes(
 	permission.Get("/:id", ph.GetPermissionByID)
 	permission.Put("/:id", ph.UpdatePermission)
 	permission.Delete("/:id", ph.DeletePermission)
+
+	// UserRole routes
+	userrole := api.Group("/userroles")
+	userrole.Use(middleware.JWTProtected(s.jwtSecret))
+	userrole.Post("/", urh.AssignRoleToUser)
+	userrole.Delete("/:id", urh.RemoveRoleFromUser)
+	userrole.Get("/", urh.SearchUserRoles)
 
 	// Task routes
 	task := api.Group("/tasks")
