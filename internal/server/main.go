@@ -5,6 +5,8 @@ import (
 	departmentHttp "task-management-system/internal/department/delivery/http"
 	departmentUseCase "task-management-system/internal/department/usecase"
 	"task-management-system/internal/logger"
+	permissionHttp "task-management-system/internal/rbac/permission/delivery/http"
+	permissionUseCase "task-management-system/internal/rbac/permission/usecase"
 	roleHttp "task-management-system/internal/rbac/role/delivery/http"
 	roleUseCase "task-management-system/internal/rbac/role/usecase"
 	taskHttp "task-management-system/internal/task/delivery/http"
@@ -64,7 +66,10 @@ func (s *Server) Start() error {
 	ru := roleUseCase.NewRoleUseCase(s.db, s.cfg)
 	rh := roleHttp.NewRoleHandler(ru)
 
-	s.SetupRoutes(th, uh, dh, rh)
+	pu := permissionUseCase.NewPermissionUseCase(s.db, s.cfg)
+	ph := permissionHttp.NewPermissionHandler(pu)
+
+	s.SetupRoutes(th, uh, dh, rh, ph)
 	return s.app.Listen(s.port)
 }
 
