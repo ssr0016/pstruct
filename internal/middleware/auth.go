@@ -24,7 +24,12 @@ func JWTProtected(secret string) fiber.Handler {
 			})
 		}
 
+		// Set user ID in context
 		c.Locals("userID", claims.UserID)
+
+		// Set user roles in context
+		c.Locals("userRoles", claims.Roles)
+
 		return c.Next()
 	}
 }

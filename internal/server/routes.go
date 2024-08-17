@@ -85,11 +85,15 @@ func (s *Server) SetupRoutes(
 	// UserRole routes
 	userrole := api.Group("/userroles")
 	userrole.Use(middleware.JWTProtected(s.jwtSecret))
-	userrole.Post("/", urh.Assign)
+	userrole.Post("/", urh.AssignRoles)
+	userrole.Get("/", urh.SearchUserRoles)
+	userrole.Get("/:id", urh.GetUserRolesByID)
+	userrole.Put("/:id", urh.UpdateUserRoles)
+	userrole.Delete("/:id", urh.RemoveUserRoles)
 
 	// Task routes
 	task := api.Group("/tasks")
-	task.Use(middleware.JWTProtected(s.jwtSecret))
+	task.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
 	task.Post("/", th.CreateTask)
 	task.Get("/", th.SearchTask)
 	task.Get("/:id", th.GetTaskByID)

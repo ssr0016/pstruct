@@ -72,6 +72,15 @@ func ErrorInternalServerError(err error) error {
 	)
 }
 
+func ErrorForbidder(err error) error {
+	return NewApiError(
+		err,
+		fiber.StatusForbidden,
+		"Forbidden",
+		nil,
+	)
+}
+
 type ErrorStatus struct {
 	Code    string `json:"code"`
 	Message string `json:"message,omitempty"`

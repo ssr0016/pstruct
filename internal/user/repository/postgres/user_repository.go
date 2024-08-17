@@ -120,6 +120,24 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id int) (*user.User, e
 	return &user, nil
 }
 
+func (r *UserRepository) GetUserRolesByID(ctx context.Context, UserID int) ([]string, error) {
+	var roles []string
+
+	rawSQL := `
+		SELECT r.name
+		FROM roles r
+		INNER JOIN user_roles ur ON ur.role_id = r.id
+		WHERE ur.user_id = $1
+	`
+
+	err := r.db.Select(ctx, &roles, rawSQL, UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return roles, nil
+}
+
 func (u *UserRepository) Update(ctx context.Context, cmd *user.UpdateUserRequest) error {
 	return u.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
 		rawSQL := `

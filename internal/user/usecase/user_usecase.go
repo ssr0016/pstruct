@@ -73,8 +73,14 @@ func (uu *UserUsecase) GetUserByEmail(ctx context.Context, cmd *user.LoginUserRe
 		return "", user.ErrInvalidPassword
 	}
 
+	// Retrieve user roles (assuming this is stored in the database and can be retrieved)
+	roles, err := uu.repo.GetUserRolesByID(ctx, result.ID)
+	if err != nil {
+		return "", err
+	}
+
 	// Generate JWT token
-	token, err := jwt.GenerateToken(result.Email)
+	token, err := jwt.GenerateToken(result.Email, roles)
 	if err != nil {
 		return "", err
 	}
