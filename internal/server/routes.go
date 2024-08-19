@@ -7,8 +7,9 @@ import (
 	"task-management-system/internal/db"
 	departmentHttp "task-management-system/internal/department/delivery/http"
 	"task-management-system/internal/middleware"
+	permissionHttp "task-management-system/internal/rbac/permissions/delivery/http"
+	permissionuserHttp "task-management-system/internal/rbac/permissionuser/delivery/http"
 	roleHttp "task-management-system/internal/rbac/role/delivery/http"
-	permissionHttp "task-management-system/internal/rbac/userpermission/delivery/http"
 	userroleHttp "task-management-system/internal/rbac/userroles/delivery/http"
 	taskHttp "task-management-system/internal/task/delivery/http"
 	userHttp "task-management-system/internal/user/delivery/http"
@@ -36,6 +37,7 @@ func (s *Server) SetupRoutes(
 	rh *roleHttp.RoleHandler,
 	ph *permissionHttp.PermissionHandler,
 	urh *userroleHttp.UserRolesHandler,
+	puuh *permissionuserHttp.PermissionUserHandler,
 ) {
 
 	api := s.app.Group("/api")
@@ -55,15 +57,6 @@ func (s *Server) SetupRoutes(
 	admin.Put("/users/:id", uh.UpdateUser)
 	admin.Delete("/users/:id", uh.DeleteUser)
 
-	// Department routes
-	department := api.Group("/departments")
-	admin.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
-	department.Post("/", dh.CreateDepartment)
-	department.Get("/", dh.SearchDepartment)
-	department.Get("/:id", dh.GetDepartmentByID)
-	department.Put("/:id", dh.UpdateDepartment)
-	department.Delete("/:id", dh.DeleteDepartment)
-
 	// Role routes
 	role := api.Group("/roles")
 	role.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
@@ -73,13 +66,6 @@ func (s *Server) SetupRoutes(
 	role.Put("/:id", rh.UpdateRole)
 	role.Delete("/:id", rh.DeleteRole)
 
-	// Permission routes
-	permission := api.Group("/permissions")
-	permission.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
-	permission.Post("/", ph.AddPermission)
-	permission.Get("/:id", ph.GetListPermission)
-	permission.Get("/actions/:id", ph.GetActionByUserID)
-
 	// UserRole routes
 	userrole := api.Group("/userroles")
 	admin.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
@@ -88,6 +74,30 @@ func (s *Server) SetupRoutes(
 	userrole.Get("/:id", urh.GetUserRolesByID)
 	userrole.Put("/:id", urh.UpdateUserRoles)
 	userrole.Delete("/:id", urh.RemoveUserRoles)
+
+	// Permission routes
+	permission := api.Group("/permissions")
+	permission.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	permission.Post("/", ph.CreatePermission)
+	permission.Get("/", ph.GetUserPermissions)
+	permission.Get("/:id", ph.GetPermissionByID)
+
+	// PermissionUser routes
+	permissionuser := api.Group("/permissionusers")
+	permissionuser.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	permissionuser.Post("/", puuh.CreaPermissionUser)
+	permissionuser.Get("/", puuh.GetUsersPermissions)
+	permissionuser.Get("/:id", puuh.GetUserPermissionByID)
+	permissionuser.Delete("/:id", puuh.DeleteUserPermission)
+
+	// Department routes
+	department := api.Group("/departments")
+	admin.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	department.Post("/", dh.CreateDepartment)
+	department.Get("/", dh.SearchDepartment)
+	department.Get("/:id", dh.GetDepartmentByID)
+	department.Put("/:id", dh.UpdateDepartment)
+	department.Delete("/:id", dh.DeleteDepartment)
 
 	// Task routes
 	task := api.Group("/tasks")

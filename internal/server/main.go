@@ -5,10 +5,12 @@ import (
 	departmentHttp "task-management-system/internal/department/delivery/http"
 	departmentUseCase "task-management-system/internal/department/usecase"
 	"task-management-system/internal/logger"
+	permissionHttp "task-management-system/internal/rbac/permissions/delivery/http"
+	permissionUseCase "task-management-system/internal/rbac/permissions/usercase"
+	permissionuserHttp "task-management-system/internal/rbac/permissionuser/delivery/http"
+	permissionuserUseCase "task-management-system/internal/rbac/permissionuser/usecase"
 	roleHttp "task-management-system/internal/rbac/role/delivery/http"
 	roleUseCase "task-management-system/internal/rbac/role/usecase"
-	permissionHttp "task-management-system/internal/rbac/userpermission/delivery/http"
-	permissionUseCase "task-management-system/internal/rbac/userpermission/usecase"
 	userroleHttp "task-management-system/internal/rbac/userroles/delivery/http"
 	userroleUseCase "task-management-system/internal/rbac/userroles/usecase"
 	taskHttp "task-management-system/internal/task/delivery/http"
@@ -68,13 +70,16 @@ func (s *Server) Start() error {
 	ru := roleUseCase.NewRoleUseCase(s.db, s.cfg)
 	rh := roleHttp.NewRoleHandler(ru)
 
-	pu := permissionUseCase.NewPermissionUseCase(s.db, s.cfg)
+	pu := permissionUseCase.NewPermissionUseCase(s.db, s.cfg, uu)
 	ph := permissionHttp.NewPermissionHandler(pu)
+
+	puu := permissionuserUseCase.NewPermissionUserUseCase(s.db, s.cfg)
+	puuh := permissionuserHttp.NewPermissionUserHandler(puu)
 
 	uru := userroleUseCase.NewUserRoleUseCase(s.db, s.cfg)
 	urh := userroleHttp.NewUserRoleHandler(uru)
 
-	s.SetupRoutes(th, uh, dh, rh, ph, urh)
+	s.SetupRoutes(th, uh, dh, rh, ph, urh, puuh)
 	return s.app.Listen(s.port)
 }
 
