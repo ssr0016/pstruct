@@ -1,27 +1,42 @@
 package permissions
 
 import (
+	"fmt"
 	"task-management-system/internal/api/errors"
 )
 
 var (
-	ErrInvalidName        = errors.New("permission.invalid-name", "Invalid name")
 	ErrPermissionNotFound = errors.New("permission.not-found", "Permission not found")
+	ErrInvalidAction      = errors.New("permission.invalid-action", "Invalid action")
 )
 
 type Permission struct {
-	ID   int    `db:"id" json:"id"`
-	Name string `db:"name" json:"name"`
+	ID      int      `db:"id" json:"id"`
+	Actions []string `db:"actions" json:"actions"`
 }
 
 type CreatePermissionCommand struct {
-	Name string `json:"name"`
+	Actions []string `json:"actions"`
 }
 
 func (cmd *CreatePermissionCommand) Validate() error {
-	if len(cmd.Name) == 0 {
-		return ErrInvalidName
+	if len(cmd.Actions) == 0 {
+		return fmt.Errorf("actions cannot be empty")
 	}
-
+	for _, action := range cmd.Actions {
+		if !isValidAction(action) {
+			return fmt.Errorf("invalid action: %s", action)
+		}
+	}
 	return nil
+}
+
+func isValidAction(action string) bool {
+	validActions := map[string]bool{
+		"read":   true,
+		"create": true,
+		"delete": true,
+		"update": true,
+	}
+	return validActions[action]
 }

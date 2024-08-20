@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"task-management-system/internal/db"
 	"task-management-system/internal/rbac/permissions"
 
@@ -24,16 +25,19 @@ func NewPermissionRepository(db db.DB) *PermissionsRepository {
 
 func (p *PermissionsRepository) CreatePermissions(ctx context.Context, cmd *permissions.CreatePermissionCommand) error {
 	return p.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
+		// Convert the slice to a CSV format
+		actionsCSV := strings.Join(cmd.Actions, ",")
+
 		rawSQL := `
-			INSERT INTO permissions (
-				name
-			) VALUES (
-				$1
-			) RETURNING id	
-		`
+            INSERT INTO permissions (
+                actions
+            ) VALUES (
+                $1
+            ) RETURNING id	
+        `
 
 		var id int
-		err := tx.QueryRow(ctx, rawSQL, cmd.Name).Scan(&id)
+		err := tx.QueryRow(ctx, rawSQL, actionsCSV).Scan(&id)
 		if err != nil {
 			return err
 		}
@@ -48,7 +52,7 @@ func (p *PermissionsRepository) GetUserPermissions(ctx context.Context) ([]*perm
 	rawSQL := `
 		 SELECT 
 		 	id,
-			name
+			actions
 		FROM permissions
 	`
 
@@ -66,7 +70,7 @@ func (p *PermissionsRepository) GetPermissionByID(ctx context.Context, id int) (
 	rawSQL := `
 		 SELECT 
 		 	id,
-			name
+			actions
 		FROM permissions
 		WHERE id = $1
 	`

@@ -108,11 +108,11 @@ func (s *Server) SetupRoutes(
 	// Task routes
 	task := api.Group("/tasks")
 	task.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
-	task.Post("/", middleware.PermissionMiddleware("create_task", permRepo), th.CreateTask)
-	task.Get("/", middleware.PermissionMiddleware("read_task", permRepo), th.SearchTask)
-	task.Get("/:id", middleware.PermissionMiddleware("read_task", permRepo), th.GetTaskByID)
-	task.Put("/:id", middleware.PermissionMiddleware("update_task", permRepo), th.UpdateTask)
-	task.Delete("/:id", middleware.PermissionMiddleware("delete_task", permRepo), th.DeleteTask)
+	task.Post("/", middleware.PermissionMiddleware("create", permRepo), th.CreateTask)
+	task.Get("/", middleware.PermissionMiddleware("read", permRepo), th.SearchTask)
+	task.Get("/:id", middleware.PermissionMiddleware("read", permRepo), th.GetTaskByID)
+	task.Put("/:id", middleware.PermissionMiddleware("update", permRepo), th.UpdateTask)
+	task.Delete("/:id", middleware.PermissionMiddleware("delete", permRepo), th.DeleteTask)
 
 	api.Get("/test-context", middleware.JWTProtected(s.jwtSecret), func(c *fiber.Ctx) error {
 		userID := c.Locals("userID")

@@ -29,9 +29,7 @@ func NewPermissionUseCase(db db.DB, cfg *config.Config, user user.Service) permi
 
 func (pu *PermissionUseCase) CreatePermissions(ctx context.Context, cmd *permissions.CreatePermissionCommand) error {
 	return pu.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
-		err := pu.repo.CreatePermissions(ctx, &permissions.CreatePermissionCommand{
-			Name: cmd.Name,
-		})
+		err := pu.repo.CreatePermissions(ctx, cmd)
 		if err != nil {
 			return err
 		}

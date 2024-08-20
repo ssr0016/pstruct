@@ -1,4 +1,9 @@
+-- CREATE TABLE permissions (
+--     id SERIAL PRIMARY KEY,
+--     actions TEXT[] NOT NULL
+-- );
+
 CREATE TABLE permissions (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
+    actions TEXT  -- Store CSV string
 );
