@@ -38,7 +38,7 @@ func (pu *PermissionUseCase) CreatePermissions(ctx context.Context, cmd *permiss
 	})
 }
 
-func (pu *PermissionUseCase) GetPermissions(ctx context.Context) ([]*permissions.Permission, error) {
+func (pu *PermissionUseCase) GetPermissions(ctx context.Context) ([]*permissions.PermissionDTO, error) {
 	result, err := pu.repo.GetUserPermissions(ctx)
 	if err != nil {
 		return nil, err

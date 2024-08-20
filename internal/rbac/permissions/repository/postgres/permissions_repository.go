@@ -46,12 +46,12 @@ func (p *PermissionsRepository) CreatePermissions(ctx context.Context, cmd *perm
 	})
 }
 
-func (p *PermissionsRepository) GetUserPermissions(ctx context.Context) ([]*permissions.Permission, error) {
-	var result []*permissions.Permission
+func (p *PermissionsRepository) GetUserPermissions(ctx context.Context) ([]*permissions.PermissionDTO, error) {
+	var result []*permissions.PermissionDTO
 
 	rawSQL := `
-		 SELECT 
-		 	id,
+		SELECT 
+			id,
 			actions
 		FROM permissions
 	`
@@ -61,9 +61,18 @@ func (p *PermissionsRepository) GetUserPermissions(ctx context.Context) ([]*perm
 		return nil, err
 	}
 
+	// Convert CSV format to slice of strings
+	for _, perm := range result {
+		// Check if Actions is not empty before splitting
+		if perm.Actions != "" {
+			perm.Actions = strings.Join(strings.Split(perm.Actions, ","), ",")
+		} else {
+			perm.Actions = "" // Handle empty CSV string
+		}
+	}
+
 	return result, nil
 }
-
 func (p *PermissionsRepository) GetPermissionByID(ctx context.Context, id int) (*permissions.Permission, error) {
 	var result permissions.Permission
 

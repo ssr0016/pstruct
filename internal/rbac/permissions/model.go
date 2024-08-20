@@ -15,6 +15,11 @@ type Permission struct {
 	Actions []string `db:"actions" json:"actions"`
 }
 
+type PermissionDTO struct {
+	ID      int    `db:"id" json:"id"`
+	Actions string `db:"actions" json:"actions"`
+}
+
 type CreatePermissionCommand struct {
 	Actions []string `json:"actions"`
 }
