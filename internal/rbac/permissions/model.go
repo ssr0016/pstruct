@@ -18,12 +18,6 @@ type CreatePermissionCommand struct {
 	Name string `json:"name"`
 }
 
-type UserPermission struct {
-	ID           int `db:"id" json:"id"`
-	UserID       int `db:"user_id" json:"user_id"`
-	PermissionID int `db:"permission_id" json:"permission_id"`
-}
-
 func (cmd *CreatePermissionCommand) Validate() error {
 	if len(cmd.Name) == 0 {
 		return ErrInvalidName

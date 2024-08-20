@@ -1,31 +1,39 @@
 package middleware
 
 import (
-	"task-management-system/internal/rbac/permissions"
+	"context"
+	"fmt"
+	"task-management-system/internal/rbac/permissions/repository/postgres"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func PermissionMiddleware(permissionSrv permissions.Service, requiredPermissions ...string) fiber.Handler {
+// PermissionMiddleware is a middleware to check if the user has the required permissions
+func PermissionMiddleware(action string, repo *postgres.PermissionsRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// userID, ok := c.Locals("userID").(int) // Assumes userID is an int
-		// if !ok {
-		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
-		// }
-
-		permissions, err := permissionSrv.GetPermissions(c.Context())
+		hasPermission, err := checkUserPermission(c.Context(), repo, action)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Unable to fetch permissions"})
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Forbidden"})
 		}
 
-		for _, p := range permissions {
-			for _, requiredPermission := range requiredPermissions {
-				if p.Name == requiredPermission {
-					return c.Next()
-				}
-			}
+		if !hasPermission {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "No permission"})
 		}
 
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You do not have the necessary permissions to access this resource"})
+		return c.Next()
 	}
+}
+func checkUserPermission(ctx context.Context, repo *postgres.PermissionsRepository, action string) (bool, error) {
+	permissions, err := repo.GetUserPermissions(ctx)
+	if err != nil {
+		return false, fmt.Errorf("error retrieving user permissions: %v", err)
+	}
+
+	for _, perm := range permissions {
+		if perm.Name == action {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }

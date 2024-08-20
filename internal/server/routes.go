@@ -8,6 +8,7 @@ import (
 	departmentHttp "task-management-system/internal/department/delivery/http"
 	"task-management-system/internal/middleware"
 	permissionHttp "task-management-system/internal/rbac/permissions/delivery/http"
+	"task-management-system/internal/rbac/permissions/repository/postgres"
 	permissionuserHttp "task-management-system/internal/rbac/permissionuser/delivery/http"
 	roleHttp "task-management-system/internal/rbac/role/delivery/http"
 	userroleHttp "task-management-system/internal/rbac/userroles/delivery/http"
@@ -38,10 +39,13 @@ func (s *Server) SetupRoutes(
 	ph *permissionHttp.PermissionHandler,
 	urh *userroleHttp.UserRolesHandler,
 	puuh *permissionuserHttp.PermissionUserHandler,
+	permRepo *postgres.PermissionsRepository,
 ) {
 
 	api := s.app.Group("/api")
 	api.Get("/", healthCheck(s.db))
+
+	// Initialize PermissionsRepository
 
 	// User routes
 	user := api.Group("/users")
@@ -102,9 +106,9 @@ func (s *Server) SetupRoutes(
 	// Task routes
 	task := api.Group("/tasks")
 	task.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
-	task.Post("/", th.CreateTask)
-	task.Get("/", th.SearchTask)
-	task.Get("/:id", th.GetTaskByID)
-	task.Put("/:id", th.UpdateTask)
-	task.Delete("/:id", th.DeleteTask)
+	task.Post("/", middleware.PermissionMiddleware("create_task", permRepo), th.CreateTask)
+	task.Get("/", middleware.PermissionMiddleware("read_task", permRepo), th.SearchTask)
+	task.Get("/:id", middleware.PermissionMiddleware("read_task", permRepo), th.GetTaskByID)
+	task.Put("/:id", middleware.PermissionMiddleware("update_task", permRepo), th.UpdateTask)
+	task.Delete("/:id", middleware.PermissionMiddleware("delete_task", permRepo), th.DeleteTask)
 }
