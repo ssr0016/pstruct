@@ -67,14 +67,14 @@ func (p *PermissionsRepository) GetUserPermissions(ctx context.Context) ([]*perm
 		if perm.Actions != "" {
 			perm.Actions = strings.Join(strings.Split(perm.Actions, ","), ",")
 		} else {
-			perm.Actions = "" // Handle empty CSV string
+			perm.Actions = ""
 		}
 	}
 
 	return result, nil
 }
-func (p *PermissionsRepository) GetPermissionByID(ctx context.Context, id int) (*permissions.Permission, error) {
-	var result permissions.Permission
+func (p *PermissionsRepository) GetPermissionByID(ctx context.Context, id int) (*permissions.PermissionDTO, error) {
+	var result permissions.PermissionDTO
 
 	rawSQL := `
 		 SELECT 

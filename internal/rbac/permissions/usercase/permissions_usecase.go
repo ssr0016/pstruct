@@ -47,7 +47,7 @@ func (pu *PermissionUseCase) GetPermissions(ctx context.Context) ([]*permissions
 	return result, nil
 }
 
-func (pu *PermissionUseCase) GetPermissionByID(ctx context.Context, id int) (*permissions.Permission, error) {
+func (pu *PermissionUseCase) GetPermissionByID(ctx context.Context, id int) (*permissions.PermissionDTO, error) {
 	result, err := pu.repo.GetPermissionByID(ctx, id)
 	if err != nil {
 		return nil, err
