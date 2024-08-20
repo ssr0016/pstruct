@@ -77,3 +77,23 @@ func (h *PermissionUserHandler) GetUserPermissionByID(ctx *fiber.Ctx) error {
 
 	return response.Ok(ctx, result)
 }
+
+func (h *PermissionUserHandler) GetAllUserPermissions(ctx *fiber.Ctx) error {
+	// Extract 'id' from URL parameters as a string
+	userID := ctx.Params("id")
+	if userID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid user ID",
+		})
+	}
+
+	// Call the use case method with the string userID
+	result, err := h.s.GetAllUserPermissions(ctx.Context(), userID)
+	if err != nil {
+		return apiError.ErrorInternalServerError(err)
+	}
+
+	return response.Ok(ctx, fiber.Map{
+		"permissions": result,
+	})
+}

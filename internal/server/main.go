@@ -6,9 +6,9 @@ import (
 	departmentUseCase "task-management-system/internal/department/usecase"
 	"task-management-system/internal/logger"
 	permissionHttp "task-management-system/internal/rbac/permissions/delivery/http"
-	permRepoPostgres "task-management-system/internal/rbac/permissions/repository/postgres"
 	permissionUseCase "task-management-system/internal/rbac/permissions/usercase"
 	permissionuserHttp "task-management-system/internal/rbac/permissionuser/delivery/http"
+	permRepoPostgres "task-management-system/internal/rbac/permissionuser/repository/postgres"
 	permissionuserUseCase "task-management-system/internal/rbac/permissionuser/usecase"
 	roleHttp "task-management-system/internal/rbac/role/delivery/http"
 	roleUseCase "task-management-system/internal/rbac/role/usecase"
@@ -81,7 +81,8 @@ func (s *Server) Start() error {
 	urh := userroleHttp.NewUserRoleHandler(uru)
 
 	// Initialize PermissionsRepository
-	permRepo := permRepoPostgres.NewPermissionRepository(s.db)
+	// permRepo := permRepoPostgres.NewPermissionRepository(s.db)
+	permRepo := permRepoPostgres.NewPermissionUserRepository(s.db)
 
 	s.SetupRoutes(th, uh, dh, rh, ph, urh, puuh, permRepo)
 	return s.app.Listen(s.port)

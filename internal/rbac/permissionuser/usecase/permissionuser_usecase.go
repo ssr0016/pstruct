@@ -89,3 +89,12 @@ func (p *PermissionUserUseCase) GetUserPermissionByID(ctx context.Context, id in
 
 	return result, nil
 }
+
+func (p *PermissionUserUseCase) GetAllUserPermissions(ctx context.Context, userID string) ([]*permissionuser.UserPermission, error) {
+	result, err := p.repo.GetAllUserPermissions(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}

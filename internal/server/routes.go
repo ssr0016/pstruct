@@ -8,8 +8,8 @@ import (
 	departmentHttp "task-management-system/internal/department/delivery/http"
 	"task-management-system/internal/middleware"
 	permissionHttp "task-management-system/internal/rbac/permissions/delivery/http"
-	"task-management-system/internal/rbac/permissions/repository/postgres"
 	permissionuserHttp "task-management-system/internal/rbac/permissionuser/delivery/http"
+	"task-management-system/internal/rbac/permissionuser/repository/postgres"
 	roleHttp "task-management-system/internal/rbac/role/delivery/http"
 	userroleHttp "task-management-system/internal/rbac/userroles/delivery/http"
 	taskHttp "task-management-system/internal/task/delivery/http"
@@ -39,7 +39,8 @@ func (s *Server) SetupRoutes(
 	ph *permissionHttp.PermissionHandler,
 	urh *userroleHttp.UserRolesHandler,
 	puuh *permissionuserHttp.PermissionUserHandler,
-	permRepo *postgres.PermissionsRepository,
+	// permRepo *postgres.PermissionsRepository,
+	permRepo *postgres.PermissionUser,
 ) {
 
 	api := s.app.Group("/api")
@@ -93,6 +94,7 @@ func (s *Server) SetupRoutes(
 	permissionuser.Get("/", puuh.GetUsersPermissions)
 	permissionuser.Get("/:id", puuh.GetUserPermissionByID)
 	permissionuser.Delete("/:id", puuh.DeleteUserPermission)
+	permissionuser.Get("user/:id", puuh.GetAllUserPermissions)
 
 	// Department routes
 	department := api.Group("/departments")
@@ -111,4 +113,13 @@ func (s *Server) SetupRoutes(
 	task.Get("/:id", middleware.PermissionMiddleware("read_task", permRepo), th.GetTaskByID)
 	task.Put("/:id", middleware.PermissionMiddleware("update_task", permRepo), th.UpdateTask)
 	task.Delete("/:id", middleware.PermissionMiddleware("delete_task", permRepo), th.DeleteTask)
+
+	api.Get("/test-context", middleware.JWTProtected(s.jwtSecret), func(c *fiber.Ctx) error {
+		userID := c.Locals("userID")
+		userRoles := c.Locals("userRoles")
+		return c.JSON(fiber.Map{
+			"userID":    userID,
+			"userRoles": userRoles,
+		})
+	})
 }

@@ -154,3 +154,21 @@ func (ps *PermissionUser) GetUserPermissionByID(ctx context.Context, id int) (*p
 	}
 	return &result, nil
 }
+
+func (ps *PermissionUser) GetAllUserPermissions(ctx context.Context, userID string) ([]*permissionuser.UserPermission, error) {
+	var result []*permissionuser.UserPermission
+
+	// Define the raw SQL query
+	rawSQL := `
+SELECT id, user_id, permission_id, action, scope
+FROM user_permissions
+WHERE user_id = (SELECT id FROM users WHERE email = $1)
+`
+
+	err := ps.db.Select(ctx, &result, rawSQL, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
