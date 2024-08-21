@@ -130,8 +130,8 @@ func PermissionMiddleware(requiredAction string, repo *postgres.PermissionUserRe
 			})
 		}
 
-		// Log userID from context
-		fmt.Printf("PermissionMiddleware: UserID=%s\n", userID)
+		// // Log userID from context
+		// fmt.Printf("PermissionMiddleware: UserID=%s\n", userID)
 
 		// Call repo to get permissions for the user
 		permissions, err := repo.GetAllUserPermissions(c.Context(), userID)
@@ -147,7 +147,7 @@ func PermissionMiddleware(requiredAction string, repo *postgres.PermissionUserRe
 			// Split the actions by comma and check if the required action is present
 			actions := strings.Split(perm.Action, ",")
 			for _, action := range actions {
-				fmt.Printf("PermissionMiddleware: Checking permission %s\n", action)
+				// fmt.Printf("PermissionMiddleware: Checking permission %s\n", action)
 				if strings.TrimSpace(action) == requiredAction {
 					hasPermission = true
 					break

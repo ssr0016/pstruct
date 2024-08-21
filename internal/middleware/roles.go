@@ -29,10 +29,10 @@ func RoleBasedAccessControl(repo *postgres.UserRoleRepository, requiredRoles ...
 		// Create a set of user roles for easy lookup
 		roleSet := parseRoles(userRoles)
 
-		// Debugging information
-		fmt.Printf("UserID from token: %s\n", userID)
-		fmt.Printf("User roles: %v\n", roleSet)
-		fmt.Printf("Required roles: %v\n", requiredRoles)
+		// // Debugging information
+		// fmt.Printf("UserID from token: %s\n", userID)
+		// fmt.Printf("User roles: %v\n", roleSet)
+		// fmt.Printf("Required roles: %v\n", requiredRoles)
 
 		// Check if all required roles are present
 		for _, requiredRole := range requiredRoles {

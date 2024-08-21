@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"strings"
 	"task-management-system/pkg/util/jwt"
 
@@ -70,7 +69,7 @@ func JWTProtected(secret string) fiber.Handler {
 		}
 
 		// Debugging statements
-		fmt.Printf("UserID from token: %s\n", claims.UserID)
+		// fmt.Printf("UserID from token: %s\n", claims.UserID)
 
 		c.Locals("userID", claims.UserID)
 

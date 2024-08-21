@@ -108,19 +108,10 @@ func (s *Server) SetupRoutes(
 	// Task routes
 	task := api.Group("/tasks")
 	task.Use(middleware.JWTProtected(s.jwtSecret))
-	task.Use(middleware.RoleBasedAccessControl(userRoleRepo, "admin"))
+	task.Use(middleware.RoleBasedAccessControl(userRoleRepo, "admin", "manager", "hr"))
 	task.Post("/", middleware.PermissionMiddleware("create", permRepo), th.CreateTask)
 	task.Get("/", middleware.PermissionMiddleware("read", permRepo), th.SearchTask)
 	task.Get("/:id", middleware.PermissionMiddleware("read", permRepo), th.GetTaskByID)
 	task.Put("/:id", middleware.PermissionMiddleware("update", permRepo), th.UpdateTask)
 	task.Delete("/:id", middleware.PermissionMiddleware("delete", permRepo), th.DeleteTask)
-
-	api.Get("/test-context", middleware.JWTProtected(s.jwtSecret), func(c *fiber.Ctx) error {
-		userID := c.Locals("userID")
-		userRoles := c.Locals("userRoles")
-		return c.JSON(fiber.Map{
-			"userID":    userID,
-			"userRoles": userRoles,
-		})
-	})
 }
