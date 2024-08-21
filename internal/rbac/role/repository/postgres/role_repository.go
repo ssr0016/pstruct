@@ -109,3 +109,22 @@ func (r *RoleRository) GetRoles(ctx context.Context) ([]*rabc.RoleDTO, error) {
 
 	return result, nil
 }
+
+func (r *RoleRository) getRoleNameByID(ctx context.Context, roleID int) (string, error) {
+	var roleName string
+
+	rawSQL := `
+		SELECT
+			name
+		FROM roles
+		WHERE 
+			id = $1
+	`
+
+	err := r.db.Get(ctx, &roleName, rawSQL, roleID)
+	if err != nil {
+		return "", err
+	}
+
+	return roleName, nil
+}

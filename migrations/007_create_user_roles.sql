@@ -1,8 +1,9 @@
-CREATE TABLE user_roles (
-    id SERIAL PRIMARY KEY,       -- Auto-incrementing ID
-    user_id INTEGER NOT NULL,
-    role_id INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE,
-    UNIQUE (user_id, role_id)    -- Ensure a user cannot have the same role more than once
+CREATE TABLE user_roles(
+    id SERIAL NOT NULL,
+    user_id varchar(255) NOT NULL,
+    role_id integer NOT NULL,
+    role_names character varying[],
+    PRIMARY KEY(id),
+    CONSTRAINT user_roles_role_id_fkey FOREIGN key(role_id) REFERENCES roles(id)
 );
+CREATE UNIQUE INDEX user_roles_user_id_role_id_key ON user_roles USING btree ("user_id","role_id");

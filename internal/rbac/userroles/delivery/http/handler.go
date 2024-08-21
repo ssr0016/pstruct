@@ -61,9 +61,9 @@ func (h *UserRolesHandler) RemoveUserRoles(ctx *fiber.Ctx) error {
 }
 
 func (h *UserRolesHandler) GetUserRolesByID(ctx *fiber.Ctx) error {
-	id, _ := ctx.ParamsInt("id")
+	idStr := ctx.Params("id")
 
-	roles, err := h.s.GetUserRolesByID(ctx.Context(), id)
+	roles, err := h.s.GetUserRolesByID(ctx.Context(), idStr)
 	if err != nil {
 		return apiError.ErrorBadRequest(err)
 	}
@@ -72,41 +72,4 @@ func (h *UserRolesHandler) GetUserRolesByID(ctx *fiber.Ctx) error {
 		"roles": roles,
 	})
 
-}
-
-func (h *UserRolesHandler) UpdateUserRoles(ctx *fiber.Ctx) error {
-	var cmd userroles.UpdateUserRolesCommand
-
-	if err := ctx.BodyParser(&cmd); err != nil {
-		return apiError.ErrorBadRequest(err)
-	}
-
-	if err := cmd.Validate(); err != nil {
-		return apiError.ErrorBadRequest(err)
-	}
-
-	if err := h.s.UpdateUserRoles(ctx.Context(), &cmd); err != nil {
-		return apiError.ErrorInternalServerError(err)
-	}
-
-	return response.Ok(ctx, fiber.Map{
-		"user roles": cmd,
-	})
-}
-
-func (h *UserRolesHandler) SearchUserRoles(ctx *fiber.Ctx) error {
-	var query userroles.SearchUserRolesQuery
-
-	if err := ctx.QueryParser(&query); err != nil {
-		return apiError.ErrorBadRequest(err)
-	}
-
-	result, err := h.s.SearchUserRoles(ctx.Context(), &query)
-	if err != nil {
-		return apiError.ErrorInternalServerError(err)
-	}
-
-	return response.Ok(ctx, fiber.Map{
-		"roles": result,
-	})
 }

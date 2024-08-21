@@ -120,7 +120,7 @@ import (
 // 	}
 // }
 
-func PermissionMiddleware(requiredAction string, repo *postgres.PermissionUser) fiber.Handler {
+func PermissionMiddleware(requiredAction string, repo *postgres.PermissionUserRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userID, ok := c.Locals("userID").(string)
 		if !ok {

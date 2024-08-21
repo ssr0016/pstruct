@@ -12,7 +12,7 @@ import (
 )
 
 type PermissionUserUseCase struct {
-	repo *postgres.PermissionUser
+	repo *postgres.PermissionUserRepository
 	db   db.DB
 	cfg  *config.Config
 	log  *zap.Logger

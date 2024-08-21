@@ -13,19 +13,19 @@ import (
 	"go.uber.org/zap"
 )
 
-type PermissionUser struct {
+type PermissionUserRepository struct {
 	db     db.DB
 	logger *zap.Logger
 }
 
-func NewPermissionUserRepository(db db.DB) *PermissionUser {
-	return &PermissionUser{
+func NewPermissionUserRepository(db db.DB) *PermissionUserRepository {
+	return &PermissionUserRepository{
 		db:     db,
 		logger: zap.L().Named("permissionuser.repository"),
 	}
 }
 
-func (ps *PermissionUser) CreateUserPermission(ctx context.Context, cmd *permissionuser.CreateUserPermissionCommand) error {
+func (ps *PermissionUserRepository) CreateUserPermission(ctx context.Context, cmd *permissionuser.CreateUserPermissionCommand) error {
 	return ps.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
 		rawSQL := `
 		INSERT INTO user_permissions (
@@ -52,7 +52,7 @@ func (ps *PermissionUser) CreateUserPermission(ctx context.Context, cmd *permiss
 	})
 }
 
-func (ps *PermissionUser) DeleteUserPermission(ctx context.Context, id int) error {
+func (ps *PermissionUserRepository) DeleteUserPermission(ctx context.Context, id int) error {
 	return ps.db.WithTransaction(ctx, func(ctx context.Context, tx db.Tx) error {
 		rawSQL := `
 		DELETE FROM user_permissions
@@ -67,7 +67,7 @@ func (ps *PermissionUser) DeleteUserPermission(ctx context.Context, id int) erro
 	})
 }
 
-func (ps *PermissionUser) GetUserPermissions(ctx context.Context, query *permissionuser.UserPermissionsQuery) (*permissionuser.UserPermissionsResult, error) {
+func (ps *PermissionUserRepository) GetUserPermissions(ctx context.Context, query *permissionuser.UserPermissionsQuery) (*permissionuser.UserPermissionsResult, error) {
 	var (
 		result = &permissionuser.UserPermissionsResult{
 			UserPermissions: make([]*permissionuser.UserPermission, 0),
@@ -116,7 +116,7 @@ func (ps *PermissionUser) GetUserPermissions(ctx context.Context, query *permiss
 
 }
 
-func (ps *PermissionUser) getCount(ctx context.Context, sql bytes.Buffer, whereParams []interface{}) (int, error) {
+func (ps *PermissionUserRepository) getCount(ctx context.Context, sql bytes.Buffer, whereParams []interface{}) (int, error) {
 	var count int
 
 	rawSQL := "SELECT COUNT(*) FROM (" + sql.String() + ") as t1"
@@ -129,7 +129,7 @@ func (ps *PermissionUser) getCount(ctx context.Context, sql bytes.Buffer, whereP
 	return count, nil
 }
 
-func (ps *PermissionUser) GetUserPermissionByID(ctx context.Context, id int) (*permissionuser.UserPermission, error) {
+func (ps *PermissionUserRepository) GetUserPermissionByID(ctx context.Context, id int) (*permissionuser.UserPermission, error) {
 	var result permissionuser.UserPermission
 
 	rawSQL := `
@@ -155,7 +155,7 @@ func (ps *PermissionUser) GetUserPermissionByID(ctx context.Context, id int) (*p
 	return &result, nil
 }
 
-func (ps *PermissionUser) GetAllUserPermissions(ctx context.Context, userID string) ([]*permissionuser.UserPermission, error) {
+func (ps *PermissionUserRepository) GetAllUserPermissions(ctx context.Context, userID string) ([]*permissionuser.UserPermission, error) {
 	var result []*permissionuser.UserPermission
 
 	// Define the raw SQL query

@@ -15,6 +15,8 @@ import (
 	taskHttp "task-management-system/internal/task/delivery/http"
 	userHttp "task-management-system/internal/user/delivery/http"
 
+	userroleRepo "task-management-system/internal/rbac/userroles/repository/postgres"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -39,8 +41,9 @@ func (s *Server) SetupRoutes(
 	ph *permissionHttp.PermissionHandler,
 	urh *userroleHttp.UserRolesHandler,
 	puuh *permissionuserHttp.PermissionUserHandler,
-	// permRepo *postgres.PermissionsRepository,
-	permRepo *postgres.PermissionUser,
+
+	permRepo *postgres.PermissionUserRepository,
+	userRoleRepo *userroleRepo.UserRoleRepository,
 ) {
 
 	api := s.app.Group("/api")
@@ -55,7 +58,7 @@ func (s *Server) SetupRoutes(
 
 	// Admin routes
 	admin := api.Group("/admin")
-	admin.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	admin.Use(middleware.JWTProtected(s.jwtSecret))
 	admin.Post("/users", uh.CreateUser)
 	admin.Get("/users", uh.SearchUser)
 	admin.Get("/users/:id", uh.GetUserByID)
@@ -72,23 +75,21 @@ func (s *Server) SetupRoutes(
 
 	// UserRole routes
 	userrole := api.Group("/userroles")
-	admin.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	admin.Use(middleware.JWTProtected(s.jwtSecret))
 	userrole.Post("/", urh.AssignRoles)
-	userrole.Get("/", urh.SearchUserRoles)
 	userrole.Get("/:id", urh.GetUserRolesByID)
-	userrole.Put("/:id", urh.UpdateUserRoles)
 	userrole.Delete("/:id", urh.RemoveUserRoles)
 
 	// Permission routes
 	permission := api.Group("/permissions")
-	permission.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	permission.Use(middleware.JWTProtected(s.jwtSecret))
 	permission.Post("/", ph.CreatePermission)
 	permission.Get("/", ph.GetUserPermissions)
 	permission.Get("/:id", ph.GetPermissionByID)
 
 	// PermissionUser routes
 	permissionuser := api.Group("/permissionusers")
-	permissionuser.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	permissionuser.Use(middleware.JWTProtected(s.jwtSecret))
 	permissionuser.Post("/", puuh.CreaPermissionUser)
 	permissionuser.Get("/", puuh.GetUsersPermissions)
 	permissionuser.Get("/:id", puuh.GetUserPermissionByID)
@@ -97,7 +98,7 @@ func (s *Server) SetupRoutes(
 
 	// Department routes
 	department := api.Group("/departments")
-	admin.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	admin.Use(middleware.JWTProtected(s.jwtSecret))
 	department.Post("/", dh.CreateDepartment)
 	department.Get("/", dh.SearchDepartment)
 	department.Get("/:id", dh.GetDepartmentByID)
@@ -106,7 +107,8 @@ func (s *Server) SetupRoutes(
 
 	// Task routes
 	task := api.Group("/tasks")
-	task.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	task.Use(middleware.JWTProtected(s.jwtSecret))
+	task.Use(middleware.RoleBasedAccessControl(userRoleRepo, "admin"))
 	task.Post("/", middleware.PermissionMiddleware("create", permRepo), th.CreateTask)
 	task.Get("/", middleware.PermissionMiddleware("read", permRepo), th.SearchTask)
 	task.Get("/:id", middleware.PermissionMiddleware("read", permRepo), th.GetTaskByID)
