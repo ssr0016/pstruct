@@ -51,26 +51,6 @@ func (h *RoleHandler) GetRoleByID(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *RoleHandler) UpdateRole(ctx *fiber.Ctx) error {
-	var cmd rabc.UpdateRoleCommand
-
-	if err := ctx.BodyParser(&cmd); err != nil {
-		return apiError.ErrorBadRequest(err)
-	}
-
-	if err := cmd.Validate(); err != nil {
-		return apiError.ErrorBadRequest(err)
-	}
-
-	if err := h.s.UpdateRole(ctx.Context(), &cmd); err != nil {
-		return apiError.ErrorInternalServerError(err)
-	}
-
-	return response.Ok(ctx, fiber.Map{
-		"role": cmd,
-	})
-}
-
 func (h *RoleHandler) DeleteRole(ctx *fiber.Ctx) error {
 	id, _ := ctx.ParamsInt("id")
 
@@ -86,16 +66,10 @@ func (h *RoleHandler) DeleteRole(ctx *fiber.Ctx) error {
 	})
 }
 
-func (h *RoleHandler) SearchRole(ctx *fiber.Ctx) error {
-	var query rabc.SearchRoleQuery
-
-	if err := ctx.QueryParser(&query); err != nil {
-		return apiError.ErrorBadRequest(err)
-	}
-
-	result, err := h.s.SearchRole(ctx.Context(), &query)
+func (h *RoleHandler) GetRoles(ctx *fiber.Ctx) error {
+	result, err := h.s.GetRoles(ctx.Context())
 	if err != nil {
-		return apiError.ErrorBadRequest(err)
+		return apiError.ErrorInternalServerError(err)
 	}
 
 	return response.Ok(ctx, fiber.Map{

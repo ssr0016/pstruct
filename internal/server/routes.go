@@ -64,11 +64,10 @@ func (s *Server) SetupRoutes(
 
 	// Role routes
 	role := api.Group("/roles")
-	role.Use(middleware.JWTProtected(s.jwtSecret), middleware.RoleProtected("Admin"))
+	role.Use(middleware.JWTProtected(s.jwtSecret))
 	role.Post("/", rh.CreateRole)
-	role.Get("/", rh.SearchRole)
 	role.Get("/:id", rh.GetRoleByID)
-	role.Put("/:id", rh.UpdateRole)
+	role.Get("/", rh.GetRoles)
 	role.Delete("/:id", rh.DeleteRole)
 
 	// UserRole routes
